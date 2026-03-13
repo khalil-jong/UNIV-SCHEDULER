@@ -61,9 +61,15 @@ public class Salle {
 
     public String getEquipementsStr() {
         StringBuilder sb = new StringBuilder();
-        if (videoprojecteur) sb.append("📽 ");
-        if (tableauInteractif) sb.append("🖥 ");
-        if (climatisation) sb.append("❄ ");
+        if (videoprojecteur) {
+			sb.append("📽 ");
+		}
+        if (tableauInteractif) {
+			sb.append("🖥 ");
+		}
+        if (climatisation) {
+			sb.append("❄ ");
+		}
         return sb.length() == 0 ? "Aucun" : sb.toString().trim();
     }
 

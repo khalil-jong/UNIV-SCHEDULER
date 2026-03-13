@@ -1,19 +1,23 @@
 package ui;
 
-import dao.CoursDAO;
-import dao.SalleDAO;
-import dao.UtilisateurDAO;
-import models.Cours;
-import models.Salle;
-import models.Utilisateur;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.collections.FXCollections;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import dao.CoursDAO;
+import dao.SalleDAO;
+import dao.UtilisateurDAO;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import models.Cours;
+import models.Salle;
+import models.Utilisateur;
 
 // Dashboard avancé avec statistiques, taux d'occupation, conflits en temps réel
 public class DashboardPanel {

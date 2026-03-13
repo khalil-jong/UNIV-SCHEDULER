@@ -1,20 +1,30 @@
 package ui;
 
-import dao.CoursDAO;
-import dao.SalleDAO;
-import models.Cours;
-import models.Salle;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import dao.CoursDAO;
+import dao.SalleDAO;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import models.Cours;
+import models.Salle;
 
 public class CalendrierPanel {
 
@@ -102,13 +112,19 @@ public class CalendrierPanel {
         });
 
         btnPrev.setOnAction(e -> {
-            if (vue.equals("SEMAINE")) semaineCourante = semaineCourante.minusWeeks(1);
-            else semaineCourante = semaineCourante.minusDays(1);
+            if (vue.equals("SEMAINE")) {
+				semaineCourante = semaineCourante.minusWeeks(1);
+			} else {
+				semaineCourante = semaineCourante.minusDays(1);
+			}
             rafraichir();
         });
         btnSuivant.setOnAction(e -> {
-            if (vue.equals("SEMAINE")) semaineCourante = semaineCourante.plusWeeks(1);
-            else semaineCourante = semaineCourante.plusDays(1);
+            if (vue.equals("SEMAINE")) {
+				semaineCourante = semaineCourante.plusWeeks(1);
+			} else {
+				semaineCourante = semaineCourante.plusDays(1);
+			}
             rafraichir();
         });
         btnAujourdhui.setOnAction(e -> {
@@ -129,8 +145,11 @@ public class CalendrierPanel {
     }
 
     private void rafraichir() {
-        if (vue.equals("SEMAINE")) afficherVueSemaine();
-        else afficherVueJour();
+        if (vue.equals("SEMAINE")) {
+			afficherVueSemaine();
+		} else {
+			afficherVueJour();
+		}
     }
 
     // ── Vue SEMAINE ───────────────────────────────────────────────────

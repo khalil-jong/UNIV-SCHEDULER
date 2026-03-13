@@ -1,15 +1,24 @@
 package ui;
 
+import java.util.Optional;
+
 import dao.SalleDAO;
-import models.Salle;
-import javafx.geometry.Insets;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.GridPane;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.util.Optional;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import models.Salle;
 
 public class SallesPanel {
     private SalleDAO salleDAO = new SalleDAO();
@@ -140,7 +149,9 @@ public class SallesPanel {
             int capacite;
             try {
                 capacite = Integer.parseInt(tfCapacite.getText().trim());
-                if (capacite <= 0) throw new NumberFormatException();
+                if (capacite <= 0) {
+					throw new NumberFormatException();
+				}
             } catch (NumberFormatException ex) {
                 showAlert(Alert.AlertType.ERROR, "Erreur de saisie", "Capacité invalide",
                         "La capacité doit être un nombre entier positif.");

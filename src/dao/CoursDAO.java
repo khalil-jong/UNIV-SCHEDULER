@@ -1,11 +1,17 @@
 package dao;
 
-import database.DatabaseConnection;
-import models.Cours;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import database.DatabaseConnection;
+import models.Cours;
 
 public class CoursDAO {
 
@@ -61,7 +67,9 @@ public class CoursDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) cours.add(mapper(rs));
+            while (rs.next()) {
+				cours.add(mapper(rs));
+			}
         } catch (SQLException e) {
             System.err.println("Erreur lecture: " + e.getMessage());
         }
@@ -74,7 +82,9 @@ public class CoursDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return mapper(rs);
+                if (rs.next()) {
+					return mapper(rs);
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -89,7 +99,9 @@ public class CoursDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, classe);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) cours.add(mapper(rs));
+                while (rs.next()) {
+					cours.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -120,7 +132,9 @@ public class CoursDAO {
             pstmt.setString(1, nomComplet);
             pstmt.setString(2, nomInverse.isEmpty() ? nomComplet : nomInverse);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) cours.add(mapper(rs));
+                while (rs.next()) {
+					cours.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -135,7 +149,9 @@ public class CoursDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, salleId);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) cours.add(mapper(rs));
+                while (rs.next()) {
+					cours.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -152,7 +168,9 @@ public class CoursDAO {
             pstmt.setTimestamp(1, Timestamp.valueOf(debutSemaine));
             pstmt.setTimestamp(2, Timestamp.valueOf(finSemaine));
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) cours.add(mapper(rs));
+                while (rs.next()) {
+					cours.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -171,7 +189,9 @@ public class CoursDAO {
             pstmt.setTimestamp(2, Timestamp.valueOf(finSemaine));
             pstmt.setString(3, classe);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) cours.add(mapper(rs));
+                while (rs.next()) {
+					cours.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -188,7 +208,9 @@ public class CoursDAO {
             pstmt.setTimestamp(1, Timestamp.valueOf(jour));
             pstmt.setTimestamp(2, Timestamp.valueOf(finJour));
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) cours.add(mapper(rs));
+                while (rs.next()) {
+					cours.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -207,7 +229,9 @@ public class CoursDAO {
             pstmt.setTimestamp(2, Timestamp.valueOf(finJour));
             pstmt.setString(3, classe);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) cours.add(mapper(rs));
+                while (rs.next()) {
+					cours.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -222,7 +246,9 @@ public class CoursDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) classes.add(rs.getString("classe"));
+            while (rs.next()) {
+				classes.add(rs.getString("classe"));
+			}
         } catch (SQLException e) {
             System.err.println("Erreur classes: " + e.getMessage());
         }
@@ -238,7 +264,9 @@ public class CoursDAO {
                 Cours c2 = tousLesCours.get(j);
                 boolean seSuperposent = c1.getDateDebut().isBefore(c2.getDateFin())
                         && c2.getDateDebut().isBefore(c1.getDateFin());
-                if (!seSuperposent) continue;
+                if (!seSuperposent) {
+					continue;
+				}
                 if (c1.getSalleId() == c2.getSalleId()) {
                     conflits.add("🏫 CONFLIT SALLE : \"" + c1.getMatiere() + "\" et \"" + c2.getMatiere()
                             + "\" utilisent la même salle au même moment.");

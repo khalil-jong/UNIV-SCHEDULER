@@ -1,10 +1,9 @@
 package ui;
 
-import models.Utilisateur;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import models.Utilisateur;
 
 public class UnivSchedulerApp extends Application {
 

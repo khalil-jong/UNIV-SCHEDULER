@@ -1,17 +1,24 @@
 package ui;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import dao.CoursDAO;
 import dao.SalleDAO;
-import models.Cours;
-import models.Salle;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.collections.FXCollections;
-import java.time.LocalDateTime;
-import java.util.List;
+import models.Cours;
+import models.Salle;
 
 public class AjouterCoursPanel {
     private CoursDAO coursDAO = new CoursDAO();

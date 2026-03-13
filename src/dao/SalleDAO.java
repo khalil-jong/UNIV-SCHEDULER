@@ -1,10 +1,16 @@
 package dao;
 
-import database.DatabaseConnection;
-import models.Salle;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
+import database.DatabaseConnection;
+import models.Salle;
 
 public class SalleDAO {
 
@@ -62,7 +68,9 @@ public class SalleDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) salles.add(mapper(rs));
+            while (rs.next()) {
+				salles.add(mapper(rs));
+			}
         } catch (SQLException e) {
             System.err.println("Erreur lors de la lecture: " + e.getMessage());
         }
@@ -75,7 +83,9 @@ public class SalleDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return mapper(rs);
+                if (rs.next()) {
+					return mapper(rs);
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -90,7 +100,9 @@ public class SalleDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, capaciteMin);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) salles.add(mapper(rs));
+                while (rs.next()) {
+					salles.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur: " + e.getMessage());
@@ -103,19 +115,31 @@ public class SalleDAO {
                                               boolean videoprojecteur, boolean tableauInteractif, boolean climatisation) {
         List<Salle> salles = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM salles WHERE capacite >= ?");
-        if (type != null && !type.equals("Tous")) sql.append(" AND type = ?");
-        if (videoprojecteur) sql.append(" AND videoprojecteur = TRUE");
-        if (tableauInteractif) sql.append(" AND tableau_interactif = TRUE");
-        if (climatisation) sql.append(" AND climatisation = TRUE");
+        if (type != null && !type.equals("Tous")) {
+			sql.append(" AND type = ?");
+		}
+        if (videoprojecteur) {
+			sql.append(" AND videoprojecteur = TRUE");
+		}
+        if (tableauInteractif) {
+			sql.append(" AND tableau_interactif = TRUE");
+		}
+        if (climatisation) {
+			sql.append(" AND climatisation = TRUE");
+		}
         sql.append(" ORDER BY capacite ASC");
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
             int idx = 1;
             pstmt.setInt(idx++, capaciteMin);
-            if (type != null && !type.equals("Tous")) pstmt.setString(idx++, type);
+            if (type != null && !type.equals("Tous")) {
+				pstmt.setString(idx++, type);
+			}
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) salles.add(mapper(rs));
+                while (rs.next()) {
+					salles.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur recherche: " + e.getMessage());
@@ -136,7 +160,9 @@ public class SalleDAO {
             pstmt.setTimestamp(1, Timestamp.valueOf(fin));
             pstmt.setTimestamp(2, Timestamp.valueOf(debut));
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) salles.add(mapper(rs));
+                while (rs.next()) {
+					salles.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur disponibilité: " + e.getMessage());

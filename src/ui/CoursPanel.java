@@ -1,18 +1,25 @@
 package ui;
 
-import dao.CoursDAO;
-import dao.SalleDAO;
-import models.Cours;
-import models.Salle;
-import javafx.geometry.Insets;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.GridPane;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+
+import dao.CoursDAO;
+import dao.SalleDAO;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import models.Cours;
 
 public class CoursPanel {
     private CoursDAO coursDAO = new CoursDAO();
@@ -143,7 +150,9 @@ public class CoursPanel {
             int duree;
             try {
                 duree = Integer.parseInt(tfDuree.getText().trim());
-                if (duree <= 0) throw new NumberFormatException();
+                if (duree <= 0) {
+					throw new NumberFormatException();
+				}
             } catch (NumberFormatException ex) {
                 showAlert(Alert.AlertType.ERROR, "Erreur de saisie", "Durée invalide",
                         "La durée doit être un nombre entier positif.");

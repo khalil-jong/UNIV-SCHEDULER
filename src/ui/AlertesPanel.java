@@ -1,13 +1,15 @@
 package ui;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import dao.CoursDAO;
 import dao.SalleDAO;
-import models.Cours;
-import models.Salle;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -15,13 +17,9 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
+import models.Cours;
+import models.Salle;
 
 public class AlertesPanel {
 
@@ -161,8 +159,9 @@ public class AlertesPanel {
             secConflits.getChildren().add(
                 carteAlerte("✅ Aucun conflit. L'emploi du temps est cohérent.", "#27ae60", "#eafaf1"));
         } else {
-            for (String c : conflits)
-                secConflits.getChildren().add(carteAlerte(c, "#c0392b", "#fdecea"));
+            for (String c : conflits) {
+				secConflits.getChildren().add(carteAlerte(c, "#c0392b", "#fdecea"));
+			}
         }
         contenu.getChildren().add(secConflits);
 
@@ -246,7 +245,8 @@ public class AlertesPanel {
                     "Cordialement,\nL'administration — UNIV-SCHEDULER";
 
                 javax.mail.Authenticator auth = new javax.mail.Authenticator() {
-                    protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
+                    @Override
+					protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
                         return new javax.mail.PasswordAuthentication(user, pass);
                     }
                 };

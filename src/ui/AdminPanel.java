@@ -1,17 +1,33 @@
 package ui;
 
-import dao.UtilisateurDAO;
-import dao.SalleDAO;
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import dao.CoursDAO;
-import models.Utilisateur;
+import dao.SalleDAO;
+import dao.UtilisateurDAO;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.collections.FXCollections;
-import java.util.Optional;
-import java.util.function.Supplier;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import models.Utilisateur;
 
 public class AdminPanel {
 

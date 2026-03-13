@@ -7,13 +7,11 @@ import models.Salle;
 import models.Utilisateur;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.collections.FXCollections;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class GestionnairePanel {
 
@@ -41,20 +39,14 @@ public class GestionnairePanel {
         bar.setPadding(new Insets(10, 20, 10, 20));
         bar.setStyle("-fx-background-color: #27ae60;");
         bar.setAlignment(Pos.CENTER_LEFT);
-
         Label titre = new Label("UNIV-SCHEDULER  |  Gestionnaire");
         titre.setStyle("-fx-text-fill: white; -fx-font-size: 16; -fx-font-weight: bold;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
+        Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
         Label userLabel = new Label("👤 " + utilisateur.getNomComplet());
         userLabel.setStyle("-fx-text-fill: white; -fx-font-size: 13;");
-
         Button btnDeco = new Button("Déconnexion");
         btnDeco.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
         btnDeco.setOnAction(e -> app.afficherLogin());
-
         bar.getChildren().addAll(titre, spacer, userLabel, new Label("   "), btnDeco);
         return bar;
     }
@@ -62,41 +54,31 @@ public class GestionnairePanel {
     private VBox creerMenu(BorderPane root) {
         VBox menu = new VBox(3);
         menu.setPadding(new Insets(12));
-        menu.setPrefWidth(210);
+        menu.setPrefWidth(215);
         menu.setStyle("-fx-background-color: #2ecc71;");
 
         ajouterTitreMenu(menu, "VUE GÉNÉRALE");
-        ajouterBtn(menu, root, "📊 Tableau de bord",    () -> new DashboardPanel().createPanel());
-        ajouterBtn(menu, root, "📅 Calendrier",          () -> new CalendrierPanel().createPanel());
-        ajouterBtn(menu, root, "🔔 Alertes & Conflits",  () -> new AlertesPanel().createPanel());
+        ajouterBouton(menu, "📊 Tableau de bord",    root, () -> new DashboardPanel().createPanel());
+        ajouterBouton(menu, "📅 Calendrier des cours",root, () -> new CalendrierPanel().createPanel());
+        ajouterBouton(menu, "🔔 Alertes & Conflits",  root, () -> new AlertesPanel().createPanel());
 
         menu.getChildren().add(new Separator());
+        ajouterTitreMenu(menu, "EMPLOI DU TEMPS");
+        ajouterBouton(menu, "📋 Gérer les EDT",       root, () -> new EmploiDuTempsGestionPanel().createPanel());
+        ajouterBouton(menu, "👁 Voir un EDT (classe)", root, () -> new EmploiDuTempsViewPanel(null).createPanel());
 
+        menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "GESTION DES COURS");
-        ajouterBtn(menu, root, "➕ Ajouter un cours",    () -> new AjouterCoursPanel().createPanel());
-        ajouterBtn(menu, root, "📋 Liste des cours",     () -> creerListeCours());
-        ajouterBtn(menu, root, "🏫 Gestion des salles",  () -> new GestionInfraPanel().createPanel());
+        ajouterBouton(menu, "➕ Ajouter un cours",    root, () -> new AjouterCoursPanel().createPanel());
+        ajouterBouton(menu, "📋 Liste des cours",     root, () -> creerListeCours());
+        ajouterBouton(menu, "🏗 Infrastructures",     root, () -> new GestionInfraPanel().createPanel());
 
         menu.getChildren().add(new Separator());
-
-        ajouterTitreMenu(menu, "RECHERCHE");
-        ajouterBtn(menu, root, "🔍 Salles disponibles",  () -> new RechercheAvanceePanel().createPanel());
-        ajouterBtn(menu, root, "📤 Export & Rapports",   () -> new ExportPanel().createPanel());
+        ajouterTitreMenu(menu, "OUTILS");
+        ajouterBouton(menu, "🔍 Salles disponibles",  root, () -> new RechercheAvanceePanel().createPanel());
+        ajouterBouton(menu, "📤 Export & Rapports",   root, () -> new ExportPanel().createPanel());
 
         return menu;
-    }
-
-    private void ajouterBtn(VBox menu, BorderPane root, String label, Supplier<Parent> fn) {
-        Button btn = new Button(label);
-        btn.setPrefWidth(185);
-        btn.setPrefHeight(38);
-        String sN = "-fx-background-color: transparent; -fx-text-fill: #1a5c35; -fx-font-size: 12; -fx-alignment: CENTER-LEFT; -fx-font-weight: bold;";
-        String sH = "-fx-background-color: #27ae60;    -fx-text-fill: white;   -fx-font-size: 12; -fx-alignment: CENTER-LEFT; -fx-font-weight: bold;";
-        btn.setStyle(sN);
-        btn.setOnMouseEntered(e -> btn.setStyle(sH));
-        btn.setOnMouseExited(e  -> btn.setStyle(sN));
-        btn.setOnAction(e -> root.setCenter(fn.get()));
-        menu.getChildren().add(btn);
     }
 
     private void ajouterTitreMenu(VBox menu, String titre) {
@@ -105,10 +87,22 @@ public class GestionnairePanel {
         menu.getChildren().add(lbl);
     }
 
+    private void ajouterBouton(VBox menu, String label, BorderPane root,
+                                java.util.function.Supplier<javafx.scene.Parent> panneau) {
+        Button btn = new Button(label);
+        btn.setPrefWidth(190); btn.setPrefHeight(38);
+        String sN = "-fx-background-color: transparent; -fx-text-fill: #1a5c35; -fx-font-size: 12; -fx-alignment: CENTER-LEFT; -fx-font-weight: bold;";
+        String sH = "-fx-background-color: #27ae60;    -fx-text-fill: white;   -fx-font-size: 12; -fx-alignment: CENTER-LEFT; -fx-font-weight: bold;";
+        btn.setStyle(sN);
+        btn.setOnMouseEntered(e -> btn.setStyle(sH));
+        btn.setOnMouseExited(e  -> btn.setStyle(sN));
+        btn.setOnAction(e -> root.setCenter(panneau.get()));
+        menu.getChildren().add(btn);
+    }
+
     private ScrollPane creerListeCours() {
         VBox panel = new VBox(10);
         panel.setPadding(new Insets(20));
-
         Label titre = new Label("📋 Gestion des Cours");
         titre.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
 
@@ -116,65 +110,49 @@ public class GestionnairePanel {
         table.setPrefHeight(380);
 
         TableColumn<Cours, String> colMatiere = new TableColumn<>("Matière");
-        colMatiere.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getMatiere()));
-        colMatiere.setPrefWidth(130);
-
+        colMatiere.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getMatiere())); colMatiere.setPrefWidth(130);
         TableColumn<Cours, String> colEnseignant = new TableColumn<>("Enseignant");
-        colEnseignant.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getEnseignant()));
-        colEnseignant.setPrefWidth(130);
-
+        colEnseignant.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getEnseignant())); colEnseignant.setPrefWidth(130);
         TableColumn<Cours, String> colClasse = new TableColumn<>("Classe");
-        colClasse.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getClasse()));
-        colClasse.setPrefWidth(100);
-
+        colClasse.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getClasse())); colClasse.setPrefWidth(100);
         TableColumn<Cours, String> colGroupe = new TableColumn<>("Groupe");
-        // getGroupe() est défini dans Cours.java — si tu as l'ancienne version, ajouter la méthode
-        colGroupe.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-            c.getValue().getGroupe() != null ? c.getValue().getGroupe() : ""));
-        colGroupe.setPrefWidth(80);
-
+        colGroupe.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getGroupe())); colGroupe.setPrefWidth(80);
         TableColumn<Cours, String> colDate = new TableColumn<>("Date/Heure");
-        colDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-            c.getValue().getDateDebut().format(formatter)));
-        colDate.setPrefWidth(140);
-
+        colDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getDateDebut().format(formatter))); colDate.setPrefWidth(140);
         TableColumn<Cours, Integer> colDuree = new TableColumn<>("Durée(min)");
-        colDuree.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getDuree()));
-        colDuree.setPrefWidth(90);
-
+        colDuree.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getDuree())); colDuree.setPrefWidth(90);
         TableColumn<Cours, String> colSalle = new TableColumn<>("Salle");
         colSalle.setCellValueFactory(c -> {
             Salle s = salleDAO.obtenirParId(c.getValue().getSalleId());
             return new javafx.beans.property.SimpleStringProperty(s != null ? s.getNumero() : "?");
-        });
-        colSalle.setPrefWidth(80);
+        }); colSalle.setPrefWidth(80);
 
-        table.getColumns().addAll(colMatiere, colEnseignant, colClasse, colGroupe, colDate, colDuree, colSalle);
-        table.setItems(FXCollections.observableArrayList(coursDAO.obtenirTous()));
-
-        Button btnActualiser = new Button("🔄 Actualiser");
-        btnActualiser.setOnAction(e -> table.setItems(FXCollections.observableArrayList(coursDAO.obtenirTous())));
-
-        Button btnSupprimer = new Button("🗑 Supprimer");
-        btnSupprimer.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-padding: 8 15;");
-        btnSupprimer.setOnAction(e -> {
-            Cours sel = table.getSelectionModel().getSelectedItem();
-            if (sel == null) { alerte(Alert.AlertType.WARNING, "Sélectionnez un cours."); return; }
-            Optional<ButtonType> res = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer ce cours ?", ButtonType.OK, ButtonType.CANCEL).showAndWait();
-            if (res.isPresent() && res.get() == ButtonType.OK) {
-                coursDAO.supprimer(sel.getId());
-                table.setItems(FXCollections.observableArrayList(coursDAO.obtenirTous()));
+        TableColumn<Cours, Void> colAction = new TableColumn<>("Action");
+        colAction.setPrefWidth(110);
+        colAction.setCellFactory(col -> new TableCell<>() {
+            private final Button btnSuppr = new Button("🗑 Supprimer");
+            { btnSuppr.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 11;");
+              btnSuppr.setOnAction(e -> {
+                Cours cours = getTableView().getItems().get(getIndex());
+                Alert a = new Alert(Alert.AlertType.CONFIRMATION, "Supprimer ce cours ?", ButtonType.YES, ButtonType.NO);
+                Optional<ButtonType> r = a.showAndWait();
+                if (r.isPresent() && r.get() == ButtonType.YES) {
+                    coursDAO.supprimer(cours.getId());
+                    table.setItems(FXCollections.observableArrayList(coursDAO.obtenirTous()));
+                }
+              });
+            }
+            @Override protected void updateItem(Void v, boolean empty) {
+                super.updateItem(v, empty); setGraphic(empty ? null : btnSuppr);
             }
         });
 
-        panel.getChildren().addAll(titre, table, new HBox(10, btnActualiser, btnSupprimer));
+        table.getColumns().addAll(colMatiere, colEnseignant, colClasse, colGroupe, colDate, colDuree, colSalle, colAction);
+        table.setItems(FXCollections.observableArrayList(coursDAO.obtenirTous()));
+
+        panel.getChildren().addAll(titre, table);
         ScrollPane scroll = new ScrollPane(panel);
         scroll.setFitToWidth(true);
         return scroll;
-    }
-
-    private void alerte(Alert.AlertType type, String msg) {
-        Alert a = new Alert(type); a.setHeaderText(msg); a.showAndWait();
     }
 }

@@ -89,10 +89,11 @@ public class EnseignantPanel {
         menu.setStyle("-fx-background-color: #9b59b6;");
 
         String[][] items = {
-            {"🏠 Accueil",                   "accueil"},
-            {"📅 Mon emploi du temps",        "edt"},
-            {"📨 Demander une réservation",   "reservation"},
-            {"🔧 Signaler un problème",       "signalement"}
+            {"🏠 Accueil",                    "accueil"},
+            {"📅 Mon EDT hebdomadaire",        "edt_grille"},
+            {"📋 Liste de mes cours",          "edt"},
+            {"📨 Demander une réservation",    "reservation"},
+            {"🔧 Signaler un problème",        "signalement"}
         };
 
         for (String[] item : items) {
@@ -106,10 +107,11 @@ public class EnseignantPanel {
             btn.setOnMouseExited(e  -> btn.setStyle(sN));
             btn.setOnAction(e -> {
                 switch (item[1]) {
-                    case "accueil":     root.setCenter(creerAccueil());            break;
-                    case "edt":         root.setCenter(creerMonEmploiDuTemps());   break;
-                    case "reservation": root.setCenter(creerDemandeReservation()); break;
-                    case "signalement": root.setCenter(creerSignalement());        break;
+                    case "accueil":    root.setCenter(creerAccueil());                                            break;
+                    case "edt_grille": root.setCenter(new EmploiDuTempsViewPanel(utilisateur.getNomComplet(), true).createPanel()); break;
+                    case "edt":        root.setCenter(creerMonEmploiDuTemps());                                         break;
+                    case "reservation":root.setCenter(creerDemandeReservation());                                       break;
+                    case "signalement":root.setCenter(creerSignalement());                                              break;
                 }
             });
             menu.getChildren().add(btn);

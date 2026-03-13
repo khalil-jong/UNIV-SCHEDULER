@@ -1,20 +1,34 @@
 package ui;
 
-import dao.CoursDAO;
-import dao.SalleDAO;
-import dao.UtilisateurDAO;
-import models.Cours;
-import models.Salle;
-import javafx.geometry.Insets;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import dao.CoursDAO;
+import dao.SalleDAO;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import models.Cours;
+import models.Salle;
 
 public class ExportPanel {
 
@@ -113,7 +127,9 @@ public class ExportPanel {
         fc.setInitialFileName("emploi_du_temps_" + LocalDate.now().format(fmtDate) + ".html");
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Page HTML pour impression (*.html)", "*.html"));
         File file = fc.showSaveDialog(new Stage());
-        if (file == null) return;
+        if (file == null) {
+			return;
+		}
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
             pw.println("<!DOCTYPE html><html><head><meta charset='UTF-8'>");
@@ -175,7 +191,9 @@ public class ExportPanel {
         fc.setInitialFileName("emploi_du_temps_" + LocalDate.now().format(fmtDate) + ".csv");
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier CSV", "*.csv"));
         File file = fc.showSaveDialog(new Stage());
-        if (file == null) return;
+        if (file == null) {
+			return;
+		}
         try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"))) {
             pw.println("\uFEFF" + "ID,Matière,Enseignant,Classe,Groupe,Date/Heure,Durée(min),Heure fin,Salle,Type salle,Bâtiment");
             for (Cours c : liste) {
@@ -200,7 +218,9 @@ public class ExportPanel {
         fc.setInitialFileName("emploi_du_temps_" + LocalDate.now().format(fmtDate) + ".html");
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HTML", "*.html"));
         File file = fc.showSaveDialog(new Stage());
-        if (file == null) return;
+        if (file == null) {
+			return;
+		}
         try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
             pw.println("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Emploi du Temps</title>");
             pw.println("<style>body{font-family:Arial;margin:20px;} h1{color:#2c3e50;} table{border-collapse:collapse;width:100%;} th{background:#3498db;color:white;padding:10px;} td{padding:8px;border:1px solid #ddd;} tr:nth-child(even){background:#f5f6fa;}</style>");
@@ -274,7 +294,9 @@ public class ExportPanel {
         fc.setTitle("Sauvegarder"); fc.setInitialFileName(nom);
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier texte", "*.txt"));
         File file = fc.showSaveDialog(new Stage());
-        if (file == null) return;
+        if (file == null) {
+			return;
+		}
         try (PrintWriter pw = new PrintWriter(new FileWriter(file))) { pw.print(contenu); msg.setText("✅ Sauvegardé : " + file.getName()); msg.setStyle("-fx-text-fill: #27ae60;");
         } catch (IOException ex) { msg.setText("❌ " + ex.getMessage()); msg.setStyle("-fx-text-fill: #e74c3c;"); }
     }

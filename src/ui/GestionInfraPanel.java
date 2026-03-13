@@ -1,17 +1,29 @@
 package ui;
 
+import java.util.Optional;
+
 import dao.BatimentDAO;
 import dao.SalleDAO;
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import models.Batiment;
 import models.Salle;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import java.util.List;
-import java.util.Optional;
 
 // Gestion des bâtiments + salles + équipements
 public class GestionInfraPanel {
@@ -198,7 +210,9 @@ public class GestionInfraPanel {
                 return;
             }
             int cap;
-            try { cap = Integer.parseInt(tfCapacite.getText().trim()); if (cap <= 0) throw new NumberFormatException(); }
+            try { cap = Integer.parseInt(tfCapacite.getText().trim()); if (cap <= 0) {
+				throw new NumberFormatException();
+			} }
             catch (NumberFormatException ex) { alert(Alert.AlertType.ERROR, "Erreur", "La capacité doit être un nombre positif."); return; }
             try {
                 Salle s = new Salle();

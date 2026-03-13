@@ -1,10 +1,15 @@
 package dao;
 
-import database.DatabaseConnection;
-import models.Utilisateur;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import database.DatabaseConnection;
+import models.Utilisateur;
 
 public class UtilisateurDAO {
 
@@ -86,7 +91,9 @@ public class UtilisateurDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, login);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return rs.getInt(1) > 0;
+                if (rs.next()) {
+					return rs.getInt(1) > 0;
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur vérification login: " + e.getMessage());
