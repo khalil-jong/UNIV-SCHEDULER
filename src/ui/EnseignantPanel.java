@@ -1,39 +1,34 @@
 package ui;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
 import dao.CoursDAO;
 import dao.SalleDAO;
-import models.Cours;
-import models.Salle;
-import models.Utilisateur;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Spinner;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
+import models.Cours;
+import models.Salle;
+import models.Utilisateur;
 
 public class EnseignantPanel {
 
@@ -110,7 +105,7 @@ public class EnseignantPanel {
                     case "accueil":    root.setCenter(creerAccueil());                                            break;
                     case "edt_grille": root.setCenter(new EmploiDuTempsViewPanel(utilisateur.getNomComplet(), true).createPanel()); break;
                     case "edt":        root.setCenter(creerMonEmploiDuTemps());                                         break;
-                    case "reservation":root.setCenter(creerDemandeReservation());                                       break;
+                    case "reservation":root.setCenter(new ReservationPanel(utilisateur).createPanel());                 break;
                     case "signalement":root.setCenter(creerSignalement());                                              break;
                 }
             });
@@ -133,7 +128,7 @@ public class EnseignantPanel {
         Label titreCours = new Label("📋 Vos prochains cours :");
         titreCours.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
 
-        List<Cours> mesCours = coursDAO.obtenirParEnseignant(utilisateur.getNomComplet());
+        List<Cours> mesCours = coursDAO.obtenirParEnseignantAvecEDT(utilisateur.getNomComplet());
         List<Cours> aVenir = mesCours.stream()
             .filter(c -> c.getDateDebut().isAfter(LocalDateTime.now()))
             .limit(5)
@@ -200,9 +195,10 @@ public class EnseignantPanel {
         Label titre = new Label("📅 Mon Emploi du Temps");
         titre.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
 
-        List<Cours> mesCours = coursDAO.obtenirParEnseignant(utilisateur.getNomComplet());
+        // Fusion cours ponctuels + créneaux EDT de l'enseignant
+        List<Cours> mesCours = coursDAO.obtenirParEnseignantAvecEDT(utilisateur.getNomComplet());
 
-        Label infoLabel = new Label("Cours associés à : " + utilisateur.getNomComplet()
+        Label infoLabel = new Label("Cours et créneaux EDT associés à : " + utilisateur.getNomComplet()
             + "  (" + mesCours.size() + " cours trouvé(s))");
         infoLabel.setStyle("-fx-font-size: 13; -fx-text-fill: #8e44ad;");
 
@@ -250,138 +246,6 @@ public class EnseignantPanel {
         return scroll;
     }
 
-    // ── Demande de réservation ────────────────────────────────────────
-    private ScrollPane creerDemandeReservation() {
-        VBox panel = new VBox(18);
-        panel.setPadding(new Insets(25));
-
-        Label titre = new Label("📨 Demander une Réservation de Salle");
-        titre.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
-
-        Label desc = new Label(
-            "Remplissez ce formulaire pour soumettre une demande ponctuelle " +
-            "(soutenance, réunion, cours supplémentaire...). Le gestionnaire sera notifié.");
-        desc.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
-        desc.setWrapText(true);
-
-        // Tableau des salles disponibles
-        Label lblSalles = new Label("🏫 Salles disponibles (cliquez pour pré-remplir) :");
-        lblSalles.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
-
-        TableView<Salle> tableSalles = new TableView<>();
-        tableSalles.setPrefHeight(180);
-
-        TableColumn<Salle, String> colNum = new TableColumn<>("Numéro");
-        colNum.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumero()));
-        colNum.setPrefWidth(80);
-
-        TableColumn<Salle, String> colBat = new TableColumn<>("Bâtiment");
-        colBat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBatiment()));
-        colBat.setPrefWidth(120);
-
-        TableColumn<Salle, Integer> colCap = new TableColumn<>("Capacité");
-        colCap.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getCapacite()));
-        colCap.setPrefWidth(80);
-
-        TableColumn<Salle, String> colType = new TableColumn<>("Type");
-        colType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getType()));
-        colType.setPrefWidth(70);
-
-        TableColumn<Salle, String> colEquip = new TableColumn<>("Équipements");
-        colEquip.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEquipementsStr()));
-        colEquip.setPrefWidth(130);
-
-        tableSalles.getColumns().addAll(colNum, colBat, colCap, colType, colEquip);
-        tableSalles.setItems(FXCollections.observableArrayList(salleDAO.obtenirTous()));
-
-        // Formulaire
-        Label lblForm = new Label("📝 Formulaire de demande :");
-        lblForm.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
-
-        GridPane grid = new GridPane();
-        grid.setHgap(12);
-        grid.setVgap(12);
-        grid.setPadding(new Insets(15));
-        grid.setStyle("-fx-border-color: #ddd; -fx-border-radius: 6; -fx-background-color: white; -fx-background-radius: 6;");
-
-        javafx.scene.control.TextField tfSalle      = new javafx.scene.control.TextField();
-        tfSalle.setPromptText("Ex: A101 (ou cliquez dans le tableau)");
-        tfSalle.setPrefWidth(300);
-
-        javafx.scene.control.TextField tfMotif = new javafx.scene.control.TextField();
-        tfMotif.setPromptText("Ex: Soutenance de stage, Réunion pédagogique...");
-        tfMotif.setPrefWidth(300);
-
-        DatePicker dpDate = new DatePicker(LocalDate.now().plusDays(1));
-
-        Spinner<Integer> spHeure  = new Spinner<>(7, 22, 8);
-        spHeure.setPrefWidth(85);
-        Spinner<Integer> spMinute = new Spinner<>(0, 59, 0);
-        spMinute.setPrefWidth(85);
-        Spinner<Integer> spDuree  = new Spinner<>(30, 480, 90);
-        spDuree.setPrefWidth(100);
-
-        TextArea taCommentaire = new TextArea();
-        taCommentaire.setPromptText("Nombre de participants, besoins spéciaux...");
-        taCommentaire.setPrefHeight(75);
-        taCommentaire.setPrefWidth(300);
-
-        HBox heureBox = new HBox(6, new Label("h"), spHeure, new Label("min"), spMinute);
-        heureBox.setAlignment(Pos.CENTER_LEFT);
-
-        grid.add(new Label("Salle souhaitée :"),  0, 0); grid.add(tfSalle,      1, 0);
-        grid.add(new Label("Motif :"),            0, 1); grid.add(tfMotif,      1, 1);
-        grid.add(new Label("Date :"),             0, 2); grid.add(dpDate,       1, 2);
-        grid.add(new Label("Heure de début :"),   0, 3); grid.add(heureBox,     1, 3);
-        grid.add(new Label("Durée (minutes) :"),  0, 4); grid.add(spDuree,      1, 4);
-        grid.add(new Label("Commentaire :"),      0, 5); grid.add(taCommentaire,1, 5);
-
-        // Clic sur une salle → pré-remplir le champ
-        tableSalles.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel != null)
-                tfSalle.setText(sel.getNumero() + " — " + sel.getBatiment() + " (Capacité : " + sel.getCapacite() + ")");
-        });
-
-        Label msgDemande = new Label("");
-        msgDemande.setStyle("-fx-font-size: 12;");
-        msgDemande.setWrapText(true);
-
-        Button btnEnvoyer = new Button("📤 Envoyer la demande");
-        btnEnvoyer.setStyle("-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-padding: 10 20; -fx-font-weight: bold;");
-
-        btnEnvoyer.setOnAction(e -> {
-            if (tfSalle.getText().isEmpty() || tfMotif.getText().isEmpty() || dpDate.getValue() == null) {
-                msgDemande.setText("⚠️ Remplissez au moins la salle, le motif et la date.");
-                msgDemande.setStyle("-fx-text-fill: #e67e22; -fx-font-size: 12;");
-                return;
-            }
-            String confirmation = String.format(
-                "✅ Demande envoyée au gestionnaire !\n\n" +
-                "  Enseignant  : %s\n" +
-                "  Salle       : %s\n" +
-                "  Motif       : %s\n" +
-                "  Date        : %s à %02dh%02d\n" +
-                "  Durée       : %d min\n" +
-                "  Commentaire : %s",
-                utilisateur.getNomComplet(),
-                tfSalle.getText(),
-                tfMotif.getText(),
-                dpDate.getValue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                spHeure.getValue(), spMinute.getValue(),
-                spDuree.getValue(),
-                taCommentaire.getText().isEmpty() ? "—" : taCommentaire.getText()
-            );
-            msgDemande.setText(confirmation);
-            msgDemande.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 12;");
-            tfSalle.clear(); tfMotif.clear(); taCommentaire.clear();
-            tableSalles.getSelectionModel().clearSelection();
-        });
-
-        panel.getChildren().addAll(titre, desc, lblSalles, tableSalles, lblForm, grid, btnEnvoyer, msgDemande);
-        ScrollPane scroll = new ScrollPane(panel);
-        scroll.setFitToWidth(true);
-        return scroll;
-    }
 
     // ── Signalement de problème ───────────────────────────────────────
     private ScrollPane creerSignalement() {
@@ -391,6 +255,10 @@ public class EnseignantPanel {
         Label titre = new Label("🔧 Signaler un Problème Technique");
         titre.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
 
+        Label desc = new Label("Votre signalement sera transmis directement au gestionnaire dans sa boîte de réception.");
+        desc.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
+        desc.setWrapText(true);
+
         GridPane grid = new GridPane();
         grid.setHgap(12);
         grid.setVgap(12);
@@ -399,19 +267,32 @@ public class EnseignantPanel {
 
         ComboBox<Salle> cbSalle = new ComboBox<>(FXCollections.observableArrayList(salleDAO.obtenirTous()));
         cbSalle.setPromptText("Sélectionner une salle");
-        cbSalle.setPrefWidth(260);
+        cbSalle.setPrefWidth(280);
+        cbSalle.setCellFactory(lv -> new javafx.scene.control.ListCell<Salle>() {
+            @Override protected void updateItem(Salle s, boolean empty) {
+                super.updateItem(s, empty);
+                setText(empty || s == null ? null : s.getNumero() + " — " + s.getBatiment());
+            }
+        });
+        cbSalle.setButtonCell(new javafx.scene.control.ListCell<Salle>() {
+            @Override protected void updateItem(Salle s, boolean empty) {
+                super.updateItem(s, empty);
+                setText(empty || s == null ? "Sélectionner une salle" : s.getNumero() + " — " + s.getBatiment());
+            }
+        });
 
         ComboBox<String> cbType = new ComboBox<>();
         cbType.getItems().addAll(
             "Problème électrique", "Vidéoprojecteur défaillant",
-            "Tableau interactif", "Climatisation", "Mobilier cassé", "Autre");
+            "Tableau interactif défaillant", "Climatisation", "Mobilier cassé", "Autre");
         cbType.setPromptText("Type de problème");
-        cbType.setPrefWidth(260);
+        cbType.setPrefWidth(280);
 
         TextArea taDesc = new TextArea();
         taDesc.setPromptText("Décrivez le problème en détail...");
         taDesc.setPrefHeight(100);
-        taDesc.setPrefWidth(260);
+        taDesc.setPrefWidth(280);
+        taDesc.setWrapText(true);
 
         grid.add(new Label("Salle concernée :"),  0, 0); grid.add(cbSalle, 1, 0);
         grid.add(new Label("Type de problème :"), 0, 1); grid.add(cbType,  1, 1);
@@ -419,23 +300,38 @@ public class EnseignantPanel {
 
         Label msgSignal = new Label("");
         msgSignal.setStyle("-fx-font-size: 12;");
+        msgSignal.setWrapText(true);
 
-        Button btnEnvoyer = new Button("📤 Envoyer le signalement");
-        btnEnvoyer.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-padding: 10 20;");
+        Button btnEnvoyer = new Button("📤 Envoyer au gestionnaire");
+        btnEnvoyer.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-padding: 10 20; -fx-font-weight: bold;");
         btnEnvoyer.setOnAction(e -> {
             if (cbSalle.getValue() == null || cbType.getValue() == null || taDesc.getText().isEmpty()) {
-                new Alert(Alert.AlertType.WARNING, "Remplissez tous les champs.", ButtonType.OK).showAndWait();
+                msgSignal.setText("⚠️ Remplissez tous les champs.");
+                msgSignal.setStyle("-fx-text-fill: #e67e22; -fx-font-size: 12;");
                 return;
             }
-            msgSignal.setText("✅ Signalement envoyé — Salle " + cbSalle.getValue().getNumero()
-                + " — " + cbType.getValue() + "\nUn administrateur sera notifié.");
-            msgSignal.setStyle("-fx-text-fill: #27ae60;");
-            cbSalle.setValue(null);
-            cbType.setValue(null);
-            taDesc.clear();
+            String sujet = "[Signalement] " + cbType.getValue()
+                + " — Salle " + cbSalle.getValue().getNumero();
+            String corps = "Signalement de : " + utilisateur.getNomComplet() + "\n\n"
+                + "Salle      : " + cbSalle.getValue().getNumero() + " — " + cbSalle.getValue().getBatiment() + "\n"
+                + "Problème   : " + cbType.getValue() + "\n"
+                + "Description :\n" + taDesc.getText().trim();
+            models.Message msg = new models.Message(
+                0, utilisateur.getId(), utilisateur.getNomComplet(),
+                utilisateur.getRole(), sujet, corps, "RECLAMATION", false, null);
+            try {
+                new dao.MessageDAO().envoyer(msg);
+                msgSignal.setText("✅ Signalement envoyé au gestionnaire.\nSalle : "
+                    + cbSalle.getValue().getNumero() + " — " + cbType.getValue());
+                msgSignal.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 12;");
+                cbSalle.setValue(null); cbType.setValue(null); taDesc.clear();
+            } catch (Exception ex) {
+                msgSignal.setText("❌ Erreur lors de l'envoi : " + ex.getMessage());
+                msgSignal.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12;");
+            }
         });
 
-        panel.getChildren().addAll(titre, grid, btnEnvoyer, msgSignal);
+        panel.getChildren().addAll(titre, desc, grid, btnEnvoyer, msgSignal);
         ScrollPane scroll = new ScrollPane(panel);
         scroll.setFitToWidth(true);
         return scroll;

@@ -1,10 +1,10 @@
 package ui;
 
+import java.util.List;
+
 import dao.CoursDAO;
-import dao.SalleDAO;
 import dao.EmploiDuTempsDAO;
-import models.Salle;
-import models.Utilisateur;
+import dao.SalleDAO;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -23,7 +23,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import java.util.List;
+import models.Salle;
+import models.Utilisateur;
 
 public class EtudiantPanel {
 
@@ -80,9 +81,10 @@ public class EtudiantPanel {
         menu.setStyle("-fx-background-color: #f39c12;");
 
         String[][] items = {
-            {"🏠 Accueil",               "accueil"},
-            {"📅 Mon emploi du temps",   "edt"},
-            {"🔍 Chercher salle libre",  "salle"}
+            {"🏠 Accueil",                 "accueil"},
+            {"📅 Mon emploi du temps",     "edt"},
+            {"📨 Réserver une salle",      "reservation"},
+            {"🔍 Chercher salle libre",    "salle"}
         };
 
         for (String[] item : items) {
@@ -96,8 +98,9 @@ public class EtudiantPanel {
             btn.setOnAction(e -> {
                 switch (item[1]) {
                     case "accueil": root.setCenter(creerAccueil(root)); break;
-                    case "edt":     root.setCenter(creerMonEmploiDuTemps()); break;
-                    case "salle":   root.setCenter(creerRechercherSalle()); break;
+                    case "edt":         root.setCenter(creerMonEmploiDuTemps()); break;
+                    case "reservation": root.setCenter(new ReservationPanel(utilisateur).createPanel()); break;
+                    case "salle":       root.setCenter(creerRechercherSalle()); break;
                 }
             });
             menu.getChildren().add(btn);
@@ -217,8 +220,9 @@ public class EtudiantPanel {
         btnChercher.setOnAction(e -> {
             List<Salle> salles = salleDAO.rechercherParCapacite(spinCap.getValue());
             table.setItems(FXCollections.observableArrayList(salles));
-            if (salles.isEmpty())
-                new Alert(Alert.AlertType.INFORMATION, "Aucune salle avec capacité ≥ " + spinCap.getValue(), ButtonType.OK).showAndWait();
+            if (salles.isEmpty()) {
+				new Alert(Alert.AlertType.INFORMATION, "Aucune salle avec capacité ≥ " + spinCap.getValue(), ButtonType.OK).showAndWait();
+			}
         });
 
         panel.getChildren().addAll(titre, filtreBox, table);

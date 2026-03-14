@@ -1,11 +1,17 @@
 package dao;
 
-import database.DatabaseConnection;
-import models.EmploiDuTemps;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Time;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import database.DatabaseConnection;
+import models.EmploiDuTemps;
 
 public class EmploiDuTempsDAO {
 
@@ -45,7 +51,9 @@ public class EmploiDuTempsDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, classe);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) liste.add(mapper(rs));
+                while (rs.next()) {
+					liste.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur lecture EDT : " + e.getMessage());
@@ -58,7 +66,9 @@ public class EmploiDuTempsDAO {
         // Chercher les deux formats : "Prénom Nom" et "Nom Prénom"
         String inverse = "";
         String[] p = nomComplet.trim().split("\\s+", 2);
-        if (p.length == 2) inverse = p[1] + " " + p[0];
+        if (p.length == 2) {
+			inverse = p[1] + " " + p[0];
+		}
 
         String sql = "SELECT * FROM emploi_du_temps WHERE actif = 1 AND (LOWER(enseignant) = LOWER(?) OR LOWER(enseignant) = LOWER(?)) ORDER BY jour_semaine, heure_debut";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -66,7 +76,9 @@ public class EmploiDuTempsDAO {
             ps.setString(1, nomComplet);
             ps.setString(2, inverse.isEmpty() ? nomComplet : inverse);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) liste.add(mapper(rs));
+                while (rs.next()) {
+					liste.add(mapper(rs));
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur lecture EDT enseignant : " + e.getMessage());
@@ -80,7 +92,9 @@ public class EmploiDuTempsDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) liste.add(mapper(rs));
+            while (rs.next()) {
+				liste.add(mapper(rs));
+			}
         } catch (SQLException e) {
             System.err.println("Erreur lecture EDT : " + e.getMessage());
         }
@@ -93,7 +107,9 @@ public class EmploiDuTempsDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) classes.add(rs.getString("classe"));
+            while (rs.next()) {
+				classes.add(rs.getString("classe"));
+			}
         } catch (SQLException e) {
             System.err.println("Erreur classes EDT : " + e.getMessage());
         }
@@ -112,7 +128,9 @@ public class EmploiDuTempsDAO {
             ps.setTime(4, Time.valueOf(heureFin));
             ps.setTime(5, Time.valueOf(heureDebut));
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1) > 0;
+                if (rs.next()) {
+					return rs.getInt(1) > 0;
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur vérif salle EDT : " + e.getMessage());
@@ -132,7 +150,9 @@ public class EmploiDuTempsDAO {
             ps.setTime(4, Time.valueOf(heureFin));
             ps.setTime(5, Time.valueOf(heureDebut));
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1) > 0;
+                if (rs.next()) {
+					return rs.getInt(1) > 0;
+				}
             }
         } catch (SQLException e) {
             System.err.println("Erreur vérif enseignant EDT : " + e.getMessage());

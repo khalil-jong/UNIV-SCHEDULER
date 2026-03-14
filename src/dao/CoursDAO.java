@@ -6,12 +6,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import database.DatabaseConnection;
 import models.Cours;
+import models.EmploiDuTemps;
 
 public class CoursDAO {
 
@@ -253,6 +256,73 @@ public class CoursDAO {
             System.err.println("Erreur classes: " + e.getMessage());
         }
         return classes;
+    }
+
+    /**
+     * Retourne TOUS les cours de la table `cours`
+     * PLUS les créneaux de `emploi_du_temps` convertis en cours virtuels
+     * pour la semaine courante uniquement (1 occurrence par créneau).
+     * Utilisé par le tableau de bord pour des compteurs exacts.
+     */
+    public List<Cours> obtenirTousAvecEDT() {
+        List<Cours> tous = new ArrayList<>(obtenirTous());
+        EmploiDuTempsDAO edtDAO = new EmploiDuTempsDAO();
+        List<EmploiDuTemps> edts = edtDAO.obtenirTous();
+        // Semaine courante seulement → 1 occurrence par créneau
+        LocalDate lundi = LocalDate.now().with(DayOfWeek.MONDAY);
+        for (EmploiDuTemps e : edts) {
+            if (e.getJourSemaine() < 1 || e.getJourSemaine() > 6) {
+				continue;
+			}
+            LocalDate jourDate = lundi.plusDays(e.getJourSemaine() - 1);
+            LocalDateTime debut = jourDate.atTime(e.getHeureDebut());
+            // Éviter les doublons avec un cours déjà inséré en base
+            final String mat = e.getMatiere().toLowerCase();
+            final String ens = e.getEnseignant().toLowerCase();
+            boolean dejaDans = tous.stream().anyMatch(c ->
+                c.getMatiere().toLowerCase().equals(mat) &&
+                c.getEnseignant().toLowerCase().equals(ens) &&
+                c.getDateDebut().equals(debut));
+            if (!dejaDans) {
+                tous.add(new Cours(-(e.getId()), e.getMatiere(), e.getEnseignant(),
+                    e.getClasse(), "", debut, e.getDuree(), e.getSalleId()));
+            }
+        }
+        tous.sort((a, b) -> a.getDateDebut().compareTo(b.getDateDebut()));
+        return tous;
+    }
+
+    /**
+     * Cours d'un enseignant = table `cours` + créneaux EDT convertis
+     * pour les 4 semaines à venir.
+     * Utilisé dans la liste des cours de l'enseignant connecté.
+     */
+    public List<Cours> obtenirParEnseignantAvecEDT(String nomComplet) {
+        List<Cours> result = new ArrayList<>(obtenirParEnseignant(nomComplet));
+        EmploiDuTempsDAO edtDAO = new EmploiDuTempsDAO();
+        List<EmploiDuTemps> edts = edtDAO.obtenirParEnseignant(nomComplet);
+        LocalDate lundi = LocalDate.now().with(DayOfWeek.MONDAY);
+        for (int sem = 0; sem < 4; sem++) {
+            final LocalDate lundiSem = lundi.plusWeeks(sem);
+            for (EmploiDuTemps e : edts) {
+                if (e.getJourSemaine() < 1 || e.getJourSemaine() > 6) {
+					continue;
+				}
+                LocalDate jourDate = lundiSem.plusDays(e.getJourSemaine() - 1);
+                LocalDateTime debut = jourDate.atTime(e.getHeureDebut());
+                // Doublon basé sur la date exacte (chaque semaine = occurrence distincte)
+                final String mat = e.getMatiere().toLowerCase();
+                boolean dejaDans = result.stream().anyMatch(c ->
+                    c.getMatiere().toLowerCase().equals(mat) &&
+                    c.getDateDebut().equals(debut));
+                if (!dejaDans) {
+                    result.add(new Cours(-(e.getId() * 100 + sem), e.getMatiere(), e.getEnseignant(),
+                        e.getClasse(), e.getTypeCours(), debut, e.getDuree(), e.getSalleId()));
+                }
+            }
+        }
+        result.sort((a, b) -> a.getDateDebut().compareTo(b.getDateDebut()));
+        return result;
     }
 
     public List<String> detecterConflits() {

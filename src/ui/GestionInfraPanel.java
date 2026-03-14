@@ -171,83 +171,167 @@ public class GestionInfraPanel {
         table.getColumns().addAll(colNum, colBat, colEtage, colCap, colType, colEquip);
         rafraichirSalles(table);
 
-        // Formulaire ajout salle avec équipements
-        Label lblForm = new Label("Ajouter une salle :");
-        lblForm.setStyle("-fx-font-weight: bold;");
+        // ── Indicateur de mode (ajout ou modification) ──
+        Label lblMode = new Label("Mode : ➕ Ajout");
+        lblMode.setStyle("-fx-font-size: 12; -fx-text-fill: #3498db; -fx-font-weight: bold;");
+
+        // Référence mutable à la salle sélectionnée pour modification
+        final Salle[] salleEnCours = {null};
+
+        // ── Formulaire ajout/modification salle ──
+        Label lblForm = new Label("Ajouter / Modifier une salle :");
+        lblForm.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
-        grid.setPadding(new Insets(10));
-        grid.setStyle("-fx-border-color: #ddd; -fx-border-radius: 4; -fx-background-color: #fafafa;");
+        grid.setPadding(new Insets(12));
+        grid.setStyle("-fx-border-color: #ddd; -fx-border-radius: 6; -fx-background-color: #fafafa;");
 
-        TextField tfNumero = new TextField(); tfNumero.setPromptText("Ex: A101");
-        TextField tfBatiment = new TextField(); tfBatiment.setPromptText("Ex: Bâtiment A");
-        TextField tfEtage = new TextField(); tfEtage.setPromptText("Ex: 1er étage");
-        TextField tfCapacite = new TextField(); tfCapacite.setPromptText("Ex: 50");
+        TextField tfNumero   = new TextField(); tfNumero.setPromptText("Ex: A101");   tfNumero.setPrefWidth(160);
+        TextField tfBatiment = new TextField(); tfBatiment.setPromptText("Ex: Bâtiment A"); tfBatiment.setPrefWidth(160);
+        TextField tfEtage    = new TextField(); tfEtage.setPromptText("Ex: 1er étage");    tfEtage.setPrefWidth(160);
+        TextField tfCapacite = new TextField(); tfCapacite.setPromptText("Ex: 50");         tfCapacite.setPrefWidth(160);
         ComboBox<String> cbType = new ComboBox<>();
-        cbType.getItems().addAll("TD", "TP", "Amphi");
-        cbType.setPromptText("Type");
+        cbType.getItems().addAll("TD", "TP", "Amphi"); cbType.setPromptText("Type"); cbType.setPrefWidth(160);
 
         // Équipements (checkboxes)
         CheckBox chkVideo = new CheckBox("📽 Vidéoprojecteur");
-        CheckBox chkTI = new CheckBox("🖥 Tableau interactif");
-        CheckBox chkClim = new CheckBox("❄ Climatisation");
-        HBox equips = new HBox(15, chkVideo, chkTI, chkClim);
+        CheckBox chkTI    = new CheckBox("🖥 Tableau interactif");
+        CheckBox chkClim  = new CheckBox("❄ Climatisation");
+        HBox equips = new HBox(18, chkVideo, chkTI, chkClim);
+        equips.setStyle("-fx-padding: 4 0 0 0;");
 
-        grid.add(new Label("Numéro :"), 0, 0); grid.add(tfNumero, 1, 0);
-        grid.add(new Label("Bâtiment :"), 2, 0); grid.add(tfBatiment, 3, 0);
-        grid.add(new Label("Étage :"), 0, 1); grid.add(tfEtage, 1, 1);
-        grid.add(new Label("Capacité :"), 2, 1); grid.add(tfCapacite, 3, 1);
-        grid.add(new Label("Type :"), 0, 2); grid.add(cbType, 1, 2);
-        grid.add(new Label("Équipements :"), 0, 3); grid.add(equips, 1, 3, 3, 1);
+        grid.add(new Label("Numéro :"),    0, 0); grid.add(tfNumero,   1, 0);
+        grid.add(new Label("Bâtiment :"),  2, 0); grid.add(tfBatiment, 3, 0);
+        grid.add(new Label("Étage :"),     0, 1); grid.add(tfEtage,    1, 1);
+        grid.add(new Label("Capacité :"),  2, 1); grid.add(tfCapacite, 3, 1);
+        grid.add(new Label("Type :"),      0, 2); grid.add(cbType,     1, 2);
+        grid.add(new Label("Équipements :"), 0, 3); grid.add(equips,   1, 3, 3, 1);
 
-        Button btnAjouter = new Button("➕ Ajouter la salle");
+        // ── Clic sur une ligne → pré-remplir le formulaire ──
+        table.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            if (sel == null) {
+				return;
+			}
+            salleEnCours[0] = sel;
+            tfNumero.setText(sel.getNumero());
+            tfBatiment.setText(sel.getBatiment());
+            tfEtage.setText(sel.getEtage());
+            tfCapacite.setText(String.valueOf(sel.getCapacite()));
+            cbType.setValue(sel.getType());
+            chkVideo.setSelected(sel.isVideoprojecteur());
+            chkTI.setSelected(sel.isTableauInteractif());
+            chkClim.setSelected(sel.isClimatisation());
+            lblMode.setText("Mode : ✏️ Modification de " + sel.getNumero());
+            lblMode.setStyle("-fx-font-size: 12; -fx-text-fill: #e67e22; -fx-font-weight: bold;");
+        });
+
+        Label msgSalle = new Label(""); msgSalle.setStyle("-fx-font-size: 12;"); msgSalle.setWrapText(true);
+
+        // ── Bouton Ajouter ──
+        Button btnAjouter = new Button("➕ Ajouter nouvelle salle");
         btnAjouter.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 8 16;");
         btnAjouter.setOnAction(e -> {
             if (tfNumero.getText().isEmpty() || tfBatiment.getText().isEmpty() ||
-                tfEtage.getText().isEmpty() || tfCapacite.getText().isEmpty() || cbType.getValue() == null) {
-                alert(Alert.AlertType.WARNING, "Champs manquants", "Remplissez tous les champs obligatoires.");
-                return;
+                    tfEtage.getText().isEmpty() || tfCapacite.getText().isEmpty() || cbType.getValue() == null) {
+                msgSalle.setText("⚠️ Remplissez tous les champs.");
+                msgSalle.setStyle("-fx-text-fill: #e67e22; -fx-font-size: 12;"); return;
             }
             int cap;
             try { cap = Integer.parseInt(tfCapacite.getText().trim()); if (cap <= 0) {
 				throw new NumberFormatException();
 			} }
-            catch (NumberFormatException ex) { alert(Alert.AlertType.ERROR, "Erreur", "La capacité doit être un nombre positif."); return; }
+            catch (NumberFormatException ex) { msgSalle.setText("❌ Capacité invalide."); return; }
             try {
                 Salle s = new Salle();
-                s.setNumero(tfNumero.getText().trim());
-                s.setBatiment(tfBatiment.getText().trim());
-                s.setEtage(tfEtage.getText().trim());
-                s.setCapacite(cap);
+                s.setNumero(tfNumero.getText().trim()); s.setBatiment(tfBatiment.getText().trim());
+                s.setEtage(tfEtage.getText().trim());   s.setCapacite(cap);
                 s.setType(cbType.getValue());
                 s.setVideoprojecteur(chkVideo.isSelected());
                 s.setTableauInteractif(chkTI.isSelected());
                 s.setClimatisation(chkClim.isSelected());
                 salleDAO.ajouter(s);
                 rafraichirSalles(table);
-                tfNumero.clear(); tfBatiment.clear(); tfEtage.clear(); tfCapacite.clear();
-                cbType.setValue(null); chkVideo.setSelected(false); chkTI.setSelected(false); chkClim.setSelected(false);
-                alert(Alert.AlertType.INFORMATION, "Succès", "Salle ajoutée avec succès !");
-            } catch (RuntimeException ex) { alert(Alert.AlertType.ERROR, "Erreur", ex.getMessage()); }
+                viderFormulaireSalle(tfNumero, tfBatiment, tfEtage, tfCapacite, cbType, chkVideo, chkTI, chkClim);
+                salleEnCours[0] = null; table.getSelectionModel().clearSelection();
+                lblMode.setText("Mode : ➕ Ajout"); lblMode.setStyle("-fx-font-size: 12; -fx-text-fill: #3498db; -fx-font-weight: bold;");
+                msgSalle.setText("✅ Salle ajoutée avec succès."); msgSalle.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 12;");
+            } catch (RuntimeException ex) { msgSalle.setText("❌ " + ex.getMessage()); }
         });
 
+        // ── Bouton Modifier équipements (et autres champs) ──
+        Button btnModifier = new Button("✏️ Modifier la salle sélectionnée");
+        btnModifier.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-padding: 8 16;");
+        btnModifier.setOnAction(e -> {
+            if (salleEnCours[0] == null) {
+                msgSalle.setText("⚠️ Cliquez d'abord sur une salle dans le tableau.");
+                msgSalle.setStyle("-fx-text-fill: #e67e22; -fx-font-size: 12;"); return;
+            }
+            if (tfNumero.getText().isEmpty() || tfBatiment.getText().isEmpty() ||
+                    tfEtage.getText().isEmpty() || tfCapacite.getText().isEmpty() || cbType.getValue() == null) {
+                msgSalle.setText("⚠️ Remplissez tous les champs."); return;
+            }
+            int cap;
+            try { cap = Integer.parseInt(tfCapacite.getText().trim()); if (cap <= 0) {
+				throw new NumberFormatException();
+			} }
+            catch (NumberFormatException ex) { msgSalle.setText("❌ Capacité invalide."); return; }
+            try {
+                Salle s = salleEnCours[0];
+                s.setNumero(tfNumero.getText().trim()); s.setBatiment(tfBatiment.getText().trim());
+                s.setEtage(tfEtage.getText().trim());   s.setCapacite(cap);
+                s.setType(cbType.getValue());
+                // ── Modification des équipements ──
+                s.setVideoprojecteur(chkVideo.isSelected());
+                s.setTableauInteractif(chkTI.isSelected());
+                s.setClimatisation(chkClim.isSelected());
+                salleDAO.modifier(s);
+                rafraichirSalles(table);
+                viderFormulaireSalle(tfNumero, tfBatiment, tfEtage, tfCapacite, cbType, chkVideo, chkTI, chkClim);
+                salleEnCours[0] = null; table.getSelectionModel().clearSelection();
+                lblMode.setText("Mode : ➕ Ajout"); lblMode.setStyle("-fx-font-size: 12; -fx-text-fill: #3498db; -fx-font-weight: bold;");
+                msgSalle.setText("✅ Salle modifiée avec succès."); msgSalle.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 12;");
+            } catch (RuntimeException ex) { msgSalle.setText("❌ " + ex.getMessage()); }
+        });
+
+        // ── Bouton Supprimer ──
         Button btnSupprimer = new Button("🗑 Supprimer");
         btnSupprimer.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-padding: 8 16;");
         btnSupprimer.setOnAction(e -> {
             Salle sel = table.getSelectionModel().getSelectedItem();
-            if (sel == null) { alert(Alert.AlertType.WARNING, "Attention", "Sélectionnez une salle."); return; }
+            if (sel == null) { msgSalle.setText("⚠️ Sélectionnez une salle dans le tableau."); return; }
             Optional<ButtonType> res = new Alert(Alert.AlertType.CONFIRMATION,
                 "Supprimer la salle " + sel.getNumero() + " ?", ButtonType.OK, ButtonType.CANCEL).showAndWait();
             if (res.isPresent() && res.get() == ButtonType.OK) {
-                try { salleDAO.supprimer(sel.getId()); rafraichirSalles(table); }
-                catch (RuntimeException ex) { alert(Alert.AlertType.ERROR, "Erreur", ex.getMessage()); }
+                try {
+                    salleDAO.supprimer(sel.getId()); rafraichirSalles(table);
+                    viderFormulaireSalle(tfNumero, tfBatiment, tfEtage, tfCapacite, cbType, chkVideo, chkTI, chkClim);
+                    salleEnCours[0] = null;
+                    lblMode.setText("Mode : ➕ Ajout"); lblMode.setStyle("-fx-font-size: 12; -fx-text-fill: #3498db; -fx-font-weight: bold;");
+                    msgSalle.setText("✅ Salle supprimée."); msgSalle.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 12;");
+                } catch (RuntimeException ex) { msgSalle.setText("❌ " + ex.getMessage()); }
             }
         });
 
-        HBox boutons = new HBox(10, btnAjouter, btnSupprimer);
-        panel.getChildren().addAll(table, boutons, lblForm, grid);
+        // ── Bouton annuler sélection ──
+        Button btnAnnuler = new Button("✖ Annuler sélection");
+        btnAnnuler.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 8 14;");
+        btnAnnuler.setOnAction(e -> {
+            viderFormulaireSalle(tfNumero, tfBatiment, tfEtage, tfCapacite, cbType, chkVideo, chkTI, chkClim);
+            salleEnCours[0] = null; table.getSelectionModel().clearSelection();
+            lblMode.setText("Mode : ➕ Ajout"); lblMode.setStyle("-fx-font-size: 12; -fx-text-fill: #3498db; -fx-font-weight: bold;");
+            msgSalle.setText("");
+        });
+
+        HBox boutons = new HBox(10, btnAjouter, btnModifier, btnSupprimer, btnAnnuler);
+        panel.getChildren().addAll(table, lblMode, lblForm, grid, boutons, msgSalle);
         return panel;
+    }
+
+    private void viderFormulaireSalle(TextField tfNum, TextField tfBat, TextField tfEt, TextField tfCap,
+                                       ComboBox<String> cbType, CheckBox chkV, CheckBox chkTI, CheckBox chkCl) {
+        tfNum.clear(); tfBat.clear(); tfEt.clear(); tfCap.clear();
+        cbType.setValue(null); chkV.setSelected(false); chkTI.setSelected(false); chkCl.setSelected(false);
     }
 
     private void rafraichirSalles(TableView<Salle> t) {

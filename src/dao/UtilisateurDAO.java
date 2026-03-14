@@ -100,4 +100,22 @@ public class UtilisateurDAO {
         }
         return false;
     }
+
+    public List<Utilisateur> obtenirParRole(String role) {
+        List<Utilisateur> liste = new ArrayList<>();
+        String sql = "SELECT * FROM utilisateurs WHERE role = ? ORDER BY nom, prenom";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, role);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    liste.add(new Utilisateur(
+                        rs.getInt("id"), rs.getString("nom"), rs.getString("prenom"),
+                        rs.getString("login"), rs.getString("mot_de_passe"), rs.getString("role")));
+                }
+            }
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        return liste;
+    }
+
 }

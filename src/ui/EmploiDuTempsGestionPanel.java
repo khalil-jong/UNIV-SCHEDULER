@@ -1,9 +1,10 @@
 package ui;
 
+import java.time.LocalTime;
+import java.util.List;
+
 import dao.EmploiDuTempsDAO;
 import dao.SalleDAO;
-import models.EmploiDuTemps;
-import models.Salle;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -23,10 +24,9 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import java.time.LocalTime;
-import java.util.List;
+import models.EmploiDuTemps;
+import models.Salle;
 
 /**
  * Panneau GESTIONNAIRE : créer / supprimer des créneaux d'emploi du temps.
@@ -60,22 +60,28 @@ public class EmploiDuTempsGestionPanel {
         filtreBox.setAlignment(Pos.CENTER_LEFT);
         Label lblFiltre = new Label("Afficher la classe :");
         ComboBox<String> cbFiltre = new ComboBox<>();
-        cbFiltre.getItems().add("Toutes les classes");
         cbFiltre.getItems().addAll(edtDAO.obtenirToutesLesClasses());
-        cbFiltre.setValue("Toutes les classes");
+        if (!cbFiltre.getItems().isEmpty()) {
+			cbFiltre.setValue(cbFiltre.getItems().get(0));
+		}
+        cbFiltre.setPromptText("-- Choisir une classe --");
         cbFiltre.setPrefWidth(200);
         cbFiltre.setOnAction(e -> {
             String v = cbFiltre.getValue();
-            classeFiltre = (v == null || v.equals("Toutes les classes")) ? null : v;
+            classeFiltre = (v == null) ? null : v;
             chargerTable();
         });
         Button btnRefresh = new Button("🔄");
         btnRefresh.setOnAction(e -> {
             String cur = cbFiltre.getValue();
             cbFiltre.getItems().clear();
-            cbFiltre.getItems().add("Toutes les classes");
             cbFiltre.getItems().addAll(edtDAO.obtenirToutesLesClasses());
-            cbFiltre.setValue(cbFiltre.getItems().contains(cur) ? cur : "Toutes les classes");
+            if (cbFiltre.getItems().contains(cur)) {
+				cbFiltre.setValue(cur);
+			} else if (!cbFiltre.getItems().isEmpty()) {
+				cbFiltre.setValue(cbFiltre.getItems().get(0));
+			}
+            classeFiltre = cbFiltre.getValue();
             chargerTable();
         });
         filtreBox.getChildren().addAll(lblFiltre, cbFiltre, btnRefresh);
@@ -164,9 +170,9 @@ public class EmploiDuTempsGestionPanel {
     }
 
     private void chargerTable() {
-        List<EmploiDuTemps> data = (classeFiltre == null)
-            ? edtDAO.obtenirTous()
-            : edtDAO.obtenirParClasse(classeFiltre);
+        List<EmploiDuTemps> data = (classeFiltre != null)
+            ? edtDAO.obtenirParClasse(classeFiltre)
+            : new java.util.ArrayList<>();
         items.setAll(data);
     }
 
@@ -276,11 +282,15 @@ public class EmploiDuTempsGestionPanel {
                 tfClasse.clear(); tfMatiere.clear(); tfEnseignant.clear();
                 cbSalle.setValue(null); cbJour.setValue("Lundi");
                 // Rafraîchir le filtre et le tableau
+                String classeAjoutee = edt.getClasse();
                 cbFiltreExternal.getItems().clear();
-                cbFiltreExternal.getItems().add("Toutes les classes");
                 cbFiltreExternal.getItems().addAll(edtDAO.obtenirToutesLesClasses());
-                cbFiltreExternal.setValue("Toutes les classes");
-                classeFiltre = null;
+                if (cbFiltreExternal.getItems().contains(classeAjoutee)) {
+					cbFiltreExternal.setValue(classeAjoutee);
+				} else if (!cbFiltreExternal.getItems().isEmpty()) {
+					cbFiltreExternal.setValue(cbFiltreExternal.getItems().get(0));
+				}
+                classeFiltre = cbFiltreExternal.getValue();
                 chargerTable();
             } catch (Exception ex) {
                 msgLabel.setText("❌ Erreur : " + ex.getMessage());

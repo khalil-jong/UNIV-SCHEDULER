@@ -39,7 +39,8 @@ public class DashboardPanel {
 
         // === CARTES STATISTIQUES ===
         List<Salle> salles = salleDAO.obtenirTous();
-        List<Cours> cours = coursDAO.obtenirTous();
+        // Fusion cours ponctuels + créneaux EDT (4 semaines) → compteurs exacts
+        List<Cours> cours = coursDAO.obtenirTousAvecEDT();
         List<Utilisateur> users = utilisateurDAO.obtenirTous();
 
         // Cours aujourd'hui
