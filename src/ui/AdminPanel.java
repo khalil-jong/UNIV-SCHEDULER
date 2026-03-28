@@ -86,7 +86,6 @@ public class AdminPanel {
         menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "INFRASTRUCTURE");
         ajouterBouton(menu, "🏗 Bâtiments & Salles",        root, () -> creerGestionInfra());
-        ajouterBouton(menu, "🔧 Types d'équipements",       root, () -> creerGestionEquipements());
 
         menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "NOTIFICATIONS");
@@ -319,46 +318,6 @@ public class AdminPanel {
 
         panel.getChildren().addAll(table, lblMode, new Label("Ajouter / Modifier :"), grid, new HBox(10,btnAjout,btnModif,btnSuppr), msg);
         return panel;
-    }
-
-    // ════════════════════════════════════════════════════════════
-    //  Types d'équipements
-    // ════════════════════════════════════════════════════════════
-    private ScrollPane creerGestionEquipements() {
-        VBox panel = new VBox(16); panel.setPadding(new Insets(20));
-        Label titre = new Label("🔧 Types d'Équipements");
-        titre.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
-
-        Label desc = new Label("Les types d'équipements définissent les cases disponibles dans le formulaire de salle.\nActuellement disponibles dans le système :");
-        desc.setStyle("-fx-font-size: 12; -fx-text-fill: #555;"); desc.setWrapText(true);
-
-        // Affichage des équipements disponibles
-        VBox listeEquip = new VBox(8);
-        listeEquip.setPadding(new Insets(12));
-        listeEquip.setStyle("-fx-border-color:#ddd;-fx-background-color:white;-fx-border-radius:6;");
-
-        String[] equipsActuels = {"📽 Vidéoprojecteur", "🖥 Tableau interactif", "❄ Climatisation"};
-        for (String eq : equipsActuels) {
-            HBox ligne = new HBox(10);
-            ligne.setAlignment(Pos.CENTER_LEFT);
-            ligne.setPadding(new Insets(6,10,6,10));
-            ligne.setStyle("-fx-background-color:#f8f9fa;-fx-border-color:#e0e0e0;-fx-border-radius:4;");
-            Label lbl = new Label(eq);
-            lbl.setStyle("-fx-font-size:13;-fx-font-weight:bold;");
-            Label badge = new Label("✅ Actif");
-            badge.setStyle("-fx-background-color:#27ae60;-fx-text-fill:white;-fx-padding:2 8;-fx-background-radius:10;-fx-font-size:11;");
-            Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-            ligne.getChildren().addAll(lbl, sp, badge);
-            listeEquip.getChildren().add(ligne);
-        }
-
-        Label infoExtension = new Label("ℹ️ Pour ajouter de nouveaux types d'équipements (ex: Climatiseur split, Sono, Caméra de conf.), modifiez la classe Salle.java et GestionInfraPanel.java puis redéployez l'application.");
-        infoExtension.setStyle("-fx-font-size: 11; -fx-text-fill: #7f8c8d; -fx-padding: 8; -fx-background-color:#fef9e7; -fx-border-color:#f39c12; -fx-border-radius:4;");
-        infoExtension.setWrapText(true);
-
-        panel.getChildren().addAll(titre, desc, listeEquip, infoExtension);
-        ScrollPane scroll = new ScrollPane(panel); scroll.setFitToWidth(true);
-        return scroll;
     }
 
     // ── Helpers ──

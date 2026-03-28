@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : jeu. 26 mars 2026 à 20:14
+-- Généré le : sam. 28 mars 2026 à 01:23
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -141,18 +141,11 @@ CREATE TABLE `messages` (
   `expediteur_role` varchar(20) NOT NULL,
   `sujet` varchar(200) NOT NULL,
   `corps` text NOT NULL,
-  `type` enum('RESERVATION','RECLAMATION','GENERAL') DEFAULT 'GENERAL',
+  `type` enum('RESERVATION','RECLAMATION','GENERAL','ALERTE') DEFAULT 'GENERAL',
   `lu` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `destinataire_role` varchar(20) DEFAULT 'GESTIONNAIRE'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Déchargement des données de la table `messages`
---
-
-INSERT INTO `messages` (`id`, `expediteur_id`, `expediteur_nom`, `expediteur_role`, `sujet`, `corps`, `type`, `lu`, `created_at`, `destinataire_role`) VALUES
-(3, 4, 'Fatou Ndiaye', 'ETUDIANT', '[Cours supplémentaire] retard — Salle A101', 'Demande de : Fatou Ndiaye (ETUDIANT)\n\nType         : Cours supplémentaire\nSalle        : A101 — Bâtiment A (Cap: 50)\nMotif        : retard\nDate         : 16/03/2026\nHeure        : 08h00\nDurée        : 90 min\nCommentaire  : svp', 'RESERVATION', 1, '2026-03-15 02:36:26', 'GESTIONNAIRE');
 
 -- --------------------------------------------------------
 
@@ -181,9 +174,9 @@ INSERT INTO `salles` (`id`, `numero`, `capacite`, `type`, `batiment`, `etage`, `
 (1, 'A101', 50, 'TD', 'Bâtiment A', '1er étage', 1, 0, 1, '2026-03-13 06:23:27'),
 (2, 'A102', 30, 'TP', 'Bâtiment A', '1er étage', 1, 1, 0, '2026-03-13 06:23:27'),
 (3, 'A201', 100, 'Amphi', 'Bâtiment A', '2e étage', 1, 1, 1, '2026-03-13 06:23:27'),
-(4, 'B101', 45, 'TD', 'Bâtiment B', '1er étage', 0, 0, 0, '2026-03-13 06:23:27'),
+(4, 'B101', 45, 'TD', 'Bâtiment B', '1er étage', 1, 1, 1, '2026-03-13 06:23:27'),
 (5, 'B102', 60, 'TP', 'Bâtiment B', '1er étage', 1, 0, 1, '2026-03-13 06:23:27'),
-(6, 'C101', 25, 'TD', 'Bâtiment C', '1er étage', 0, 0, 0, '2026-03-13 06:23:27');
+(6, 'C101', 25, 'TD', 'Bâtiment C', '1er étage', 1, 1, 0, '2026-03-13 06:23:27');
 
 -- --------------------------------------------------------
 
