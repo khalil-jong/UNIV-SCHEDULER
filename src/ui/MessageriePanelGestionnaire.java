@@ -48,7 +48,7 @@ public class MessageriePanelGestionnaire {
         HBox barFiltres = new HBox(10);
         barFiltres.setAlignment(Pos.CENTER_LEFT);
         ComboBox<String> cbFiltre = new ComboBox<>();
-        cbFiltre.getItems().addAll("Tous", "Non lus", "Réservations", "Réclamations", "Messages");
+        cbFiltre.getItems().addAll("Tous", "Non lus", "Réservations", "Réclamations", "Alertes admin", "Messages");
         cbFiltre.setValue("Tous");
 
         Button btnTousLus = new Button("✔ Tout marquer lu");
@@ -147,6 +147,7 @@ public class MessageriePanelGestionnaire {
                 case "Non lus":       return !m.isLu();
                 case "Réservations":  return "RESERVATION".equals(m.getType());
                 case "Réclamations":  return "RECLAMATION".equals(m.getType());
+                case "Alertes admin": return "ALERTE".equals(m.getType());
                 case "Messages":      return "GENERAL".equals(m.getType());
                 default: return true;
             }

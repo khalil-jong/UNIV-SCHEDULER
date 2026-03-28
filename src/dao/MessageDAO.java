@@ -13,8 +13,10 @@ import models.Message;
 
 public class MessageDAO {
 
+    /** Envoie un message vers le gestionnaire (comportement par défaut) */
     public void envoyer(Message msg) {
-        String sql = "INSERT INTO messages (expediteur_id, expediteur_nom, expediteur_role, sujet, corps, type) VALUES (?,?,?,?,?,?)";
+        String dest = msg.getDestinataireRole() != null ? msg.getDestinataireRole() : "GESTIONNAIRE";
+        String sql = "INSERT INTO messages (expediteur_id, expediteur_nom, expediteur_role, sujet, corps, type, destinataire_role) VALUES (?,?,?,?,?,?,?)";
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, msg.getExpediteurId());
@@ -23,22 +25,42 @@ public class MessageDAO {
             ps.setString(4, msg.getSujet());
             ps.setString(5, msg.getCorps());
             ps.setString(6, msg.getType());
+            ps.setString(7, dest);
             ps.executeUpdate();
         } catch (SQLException e) { throw new RuntimeException(e.getMessage(), e); }
     }
 
+    /** Tous les messages destinés au gestionnaire */
     public List<Message> obtenirTous() {
-        return requete("SELECT * FROM messages ORDER BY created_at DESC");
+        return requete("SELECT * FROM messages WHERE destinataire_role = 'GESTIONNAIRE' ORDER BY created_at DESC");
+    }
+
+    /** Tous les messages destinés à l'administrateur */
+    public List<Message> obtenirPourAdmin() {
+        return requete("SELECT * FROM messages WHERE destinataire_role = 'ADMIN' ORDER BY created_at DESC");
     }
 
     public List<Message> obtenirNonLus() {
-        return requete("SELECT * FROM messages WHERE lu = 0 ORDER BY created_at DESC");
+        return requete("SELECT * FROM messages WHERE lu = 0 AND destinataire_role = 'GESTIONNAIRE' ORDER BY created_at DESC");
     }
 
     public int compterNonLus() {
         try (Connection c = DatabaseConnection.getConnection();
              Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM messages WHERE lu = 0")) {
+             ResultSet rs = st.executeQuery(
+                 "SELECT COUNT(*) FROM messages WHERE lu = 0 AND destinataire_role = 'GESTIONNAIRE'")) {
+            if (rs.next()) {
+				return rs.getInt(1);
+			}
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        return 0;
+    }
+
+    public int compterNonLusAdmin() {
+        try (Connection c = DatabaseConnection.getConnection();
+             Statement st = c.createStatement();
+             ResultSet rs = st.executeQuery(
+                 "SELECT COUNT(*) FROM messages WHERE lu = 0 AND destinataire_role = 'ADMIN'")) {
             if (rs.next()) {
 				return rs.getInt(1);
 			}
@@ -51,7 +73,11 @@ public class MessageDAO {
     }
 
     public void marquerTousLus() {
-        exec("UPDATE messages SET lu = 1");
+        exec("UPDATE messages SET lu = 1 WHERE destinataire_role = 'GESTIONNAIRE'");
+    }
+
+    public void marquerTousLusAdmin() {
+        exec("UPDATE messages SET lu = 1 WHERE destinataire_role = 'ADMIN'");
     }
 
     public void supprimer(int id) {
@@ -78,11 +104,14 @@ public class MessageDAO {
     }
 
     private Message mapper(ResultSet rs) throws SQLException {
+        String destRole = "GESTIONNAIRE";
+        try { destRole = rs.getString("destinataire_role"); } catch (SQLException ignored) {}
         return new Message(
             rs.getInt("id"), rs.getInt("expediteur_id"),
             rs.getString("expediteur_nom"), rs.getString("expediteur_role"),
             rs.getString("sujet"), rs.getString("corps"), rs.getString("type"),
-            rs.getBoolean("lu"), rs.getTimestamp("created_at").toLocalDateTime()
+            rs.getBoolean("lu"), rs.getTimestamp("created_at").toLocalDateTime(),
+            destRole
         );
     }
 }

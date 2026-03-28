@@ -73,7 +73,7 @@ public class GestionCoursEDTPanel {
     }
 
 
-    
+
     //  ONGLET 1 — CLASSES
 
     private VBox creerOngletClasses() {
@@ -161,9 +161,9 @@ public class GestionCoursEDTPanel {
         return panel;
     }
 
- 
+
     //  ONGLET 2 — EMPLOI DU TEMPS HEBDOMADAIRE
- 
+
     private VBox creerOngletEDT() {
         VBox panel = new VBox(16);
         panel.setPadding(new Insets(18));

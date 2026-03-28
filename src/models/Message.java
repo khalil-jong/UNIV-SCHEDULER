@@ -9,33 +9,45 @@ public class Message {
     private String expediteurRole;
     private String sujet;
     private String corps;
-    private String type; // RESERVATION, RECLAMATION, GENERAL
+    private String type;
     private boolean lu;
     private LocalDateTime createdAt;
+    private String destinataireRole; // GESTIONNAIRE ou ADMIN
 
     public Message() {}
 
     public Message(int id, int expediteurId, String expediteurNom, String expediteurRole,
                    String sujet, String corps, String type, boolean lu, LocalDateTime createdAt) {
+        this(id, expediteurId, expediteurNom, expediteurRole, sujet, corps, type, lu, createdAt, "GESTIONNAIRE");
+    }
+
+    public Message(int id, int expediteurId, String expediteurNom, String expediteurRole,
+                   String sujet, String corps, String type, boolean lu, LocalDateTime createdAt,
+                   String destinataireRole) {
         this.id = id; this.expediteurId = expediteurId; this.expediteurNom = expediteurNom;
         this.expediteurRole = expediteurRole; this.sujet = sujet; this.corps = corps;
         this.type = type; this.lu = lu; this.createdAt = createdAt;
+        this.destinataireRole = destinataireRole != null ? destinataireRole : "GESTIONNAIRE";
     }
 
-    public int getId()                { return id; }
-    public int getExpediteurId()      { return expediteurId; }
-    public String getExpediteurNom()  { return expediteurNom; }
-    public String getExpediteurRole() { return expediteurRole; }
-    public String getSujet()          { return sujet; }
-    public String getCorps()          { return corps; }
-    public String getType()           { return type != null ? type : "GENERAL"; }
-    public boolean isLu()             { return lu; }
-    public LocalDateTime getCreatedAt(){ return createdAt; }
-    public void setLu(boolean lu)     { this.lu = lu; }
+    public int getId()                       { return id; }
+    public int getExpediteurId()             { return expediteurId; }
+    public String getExpediteurNom()         { return expediteurNom; }
+    public String getExpediteurRole()        { return expediteurRole; }
+    public String getSujet()                 { return sujet; }
+    public String getCorps()                 { return corps; }
+    public String getType()                  { return type != null ? type : "GENERAL"; }
+    public boolean isLu()                    { return lu; }
+    public LocalDateTime getCreatedAt()      { return createdAt; }
+    public String getDestinataireRole()      { return destinataireRole != null ? destinataireRole : "GESTIONNAIRE"; }
+    public void setLu(boolean lu)            { this.lu = lu; }
+    public void setDestinataireRole(String d){ this.destinataireRole = d; }
+
     public String getTypeLabel() {
         switch (getType()) {
             case "RESERVATION": return "📅 Réservation";
             case "RECLAMATION": return "⚠️ Réclamation";
+            case "ALERTE":      return "🔔 Alerte";
             default:            return "💬 Message";
         }
     }

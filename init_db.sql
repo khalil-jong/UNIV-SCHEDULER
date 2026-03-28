@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : sam. 14 mars 2026 à 14:24
+-- Généré le : jeu. 26 mars 2026 à 20:14
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -93,20 +93,9 @@ CREATE TABLE `cours` (
 --
 
 INSERT INTO `cours` (`id`, `matiere`, `enseignant`, `classe`, `groupe`, `date_debut`, `duree`, `salle_id`, `created_at`) VALUES
-(1, 'Mathématiques', 'Martin Jean', 'L2-Informatique', 'Groupe A', '2026-03-16 08:00:00', 90, 1, '2026-03-13 06:23:27'),
-(2, 'Programmation Java', 'Dupont Paul', 'L2-Informatique', 'Groupe A', '2026-03-16 10:00:00', 120, 2, '2026-03-13 06:23:27'),
-(3, 'Base de Données', 'Bernard Alice', 'L2-Informatique', 'Groupe B', '2026-03-16 14:00:00', 90, 3, '2026-03-13 06:23:27'),
-(4, 'Algorithmes', 'Leclerc Marc', 'L2-Informatique', 'Groupe A', '2026-03-17 09:00:00', 120, 1, '2026-03-13 06:23:27'),
-(5, 'Réseaux', 'Thomas Sophie', 'L2-Informatique', 'Groupe B', '2026-03-17 14:00:00', 90, 4, '2026-03-13 06:23:27'),
-(6, 'Mathématiques', 'Martin Jean', 'L1-Informatique', 'Groupe A', '2026-03-18 08:00:00', 90, 5, '2026-03-13 06:23:27'),
-(7, 'mécanique', 'Mr Fall', 'L2-Physique Chimique', '', '2026-03-16 10:00:00', 120, 4, '2026-03-13 07:17:58'),
-(8, 'algo', 'Mr Diallo', 'L2-Physique Chimique', '', '2026-03-16 12:00:00', 120, 6, '2026-03-13 07:25:07'),
-(9, 'Mathématiques', 'Martin Jean', 'L1-Informatique', '', '2026-03-13 08:00:00', 120, 2, '2026-03-13 07:32:48'),
-(11, 'réseau télécomme', 'Mr Sarr', 'L3-informatique', '', '2026-03-09 08:00:00', 60, 1, '2026-03-13 17:59:12'),
-(12, 'infographie', 'Mr Ndiaye', 'L2-Physique Chimique', '', '2026-03-09 08:00:00', 60, 4, '2026-03-14 01:04:31'),
-(13, 'pc', 'Mr diallo', 'l1.resaux', '', '2026-03-03 08:00:00', 60, 1, '2026-03-14 02:01:30'),
-(14, 'phylosophie', 'alssainy diallo', 'L3-Physique Chimique', '', '2026-03-09 08:00:00', 60, 5, '2026-03-14 02:16:36'),
-(15, 'chimie nucléaire', 'diallo alssainy', 'L2-physique chimique', '', '2026-03-21 08:00:00', 60, 6, '2026-03-14 02:21:49');
+(16, 'Analyse', 'alssainy diallo', 'L1-Informatique', '', '2026-03-14 10:00:00', 120, 1, '2026-03-14 15:46:13'),
+(17, 'Programmation', 'alssainy diallo', 'L1-Informatique', '', '2026-03-10 09:00:00', 180, 2, '2026-03-14 21:02:57'),
+(18, 'mathematique', 'alssainy diallo', 'L1-Mathématiques', '', '2026-03-09 16:00:00', 90, 4, '2026-03-15 02:03:17');
 
 -- --------------------------------------------------------
 
@@ -133,16 +122,11 @@ CREATE TABLE `emploi_du_temps` (
 --
 
 INSERT INTO `emploi_du_temps` (`id`, `classe`, `matiere`, `enseignant`, `salle_id`, `jour_semaine`, `heure_debut`, `duree`, `type_cours`, `actif`, `created_at`) VALUES
-(1, 'L2-Informatique', 'Algorithmique', 'Martin Jean', 1, 1, '08:00:00', 90, 'CM', 1, '2026-03-13 22:55:52'),
-(2, 'L2-Informatique', 'Algorithmique', 'Martin Jean', 2, 3, '10:00:00', 90, 'TD', 1, '2026-03-13 22:55:52'),
-(3, 'L2-Informatique', 'Bases de données', 'Dupont Marie', 1, 2, '08:00:00', 90, 'CM', 1, '2026-03-13 22:55:52'),
-(4, 'L2-Informatique', 'Bases de données', 'Dupont Marie', 3, 4, '14:00:00', 90, 'TD', 1, '2026-03-13 22:55:52'),
-(5, 'L2-Informatique', 'Réseaux', 'Koné Ibrahima', 2, 5, '10:00:00', 90, 'CM', 1, '2026-03-13 22:55:52'),
-(6, 'L3-Informatique', 'Génie Logiciel', 'Martin Jean', 1, 1, '10:00:00', 90, 'CM', 1, '2026-03-13 22:55:52'),
-(7, 'L3-Informatique', 'Systèmes', 'Koné Ibrahima', 2, 3, '08:00:00', 90, 'CM', 1, '2026-03-13 22:55:52'),
-(8, 'L1-Mathématiques', 'Analyse', 'Dupont Marie', 1, 2, '10:00:00', 90, 'CM', 1, '2026-03-13 22:55:52'),
-(9, 'L1-Mathématiques', 'Algèbre', 'Martin Jean', 2, 4, '08:00:00', 90, 'CM', 1, '2026-03-13 22:55:52'),
-(11, 'l2:pc', 'math', 'diallo alssainy', 2, 1, '08:00:00', 90, 'TD', 1, '2026-03-14 02:33:56');
+(12, 'L1-Informatique', 'Algorithme', 'alssainy diallo', 3, 1, '08:00:00', 120, 'CM', 1, '2026-03-14 13:56:46'),
+(14, 'L1-Informatique', 'System d\'exploitation', 'Jean Martin', 1, 1, '14:00:00', 120, 'TD', 1, '2026-03-14 14:01:43'),
+(15, 'L1-Informatique', 'Analyse', 'alssainy diallo', 1, 6, '10:00:00', 120, 'CM', 1, '2026-03-14 15:46:13'),
+(16, 'L1-Informatique', 'Programmation', 'alssainy diallo', 2, 2, '09:00:00', 180, 'CM', 1, '2026-03-14 21:02:57'),
+(17, 'L1-Mathématiques', 'mathematique', 'alssainy diallo', 4, 1, '16:00:00', 90, 'TP', 1, '2026-03-15 02:03:17');
 
 -- --------------------------------------------------------
 
@@ -159,8 +143,16 @@ CREATE TABLE `messages` (
   `corps` text NOT NULL,
   `type` enum('RESERVATION','RECLAMATION','GENERAL') DEFAULT 'GENERAL',
   `lu` tinyint(1) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `destinataire_role` varchar(20) DEFAULT 'GESTIONNAIRE'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `messages`
+--
+
+INSERT INTO `messages` (`id`, `expediteur_id`, `expediteur_nom`, `expediteur_role`, `sujet`, `corps`, `type`, `lu`, `created_at`, `destinataire_role`) VALUES
+(3, 4, 'Fatou Ndiaye', 'ETUDIANT', '[Cours supplémentaire] retard — Salle A101', 'Demande de : Fatou Ndiaye (ETUDIANT)\n\nType         : Cours supplémentaire\nSalle        : A101 — Bâtiment A (Cap: 50)\nMotif        : retard\nDate         : 16/03/2026\nHeure        : 08h00\nDurée        : 90 min\nCommentaire  : svp', 'RESERVATION', 1, '2026-03-15 02:36:26', 'GESTIONNAIRE');
 
 -- --------------------------------------------------------
 
@@ -296,19 +288,19 @@ ALTER TABLE `classes`
 -- AUTO_INCREMENT pour la table `cours`
 --
 ALTER TABLE `cours`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT pour la table `emploi_du_temps`
 --
 ALTER TABLE `emploi_du_temps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT pour la table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `salles`
