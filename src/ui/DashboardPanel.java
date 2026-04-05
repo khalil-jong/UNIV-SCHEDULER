@@ -9,6 +9,7 @@ import dao.SalleDAO;
 import dao.UtilisateurDAO;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
@@ -37,6 +38,27 @@ public class DashboardPanel {
         Label dateLbl = new Label("📅 " + LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", java.util.Locale.FRENCH)));
         dateLbl.setStyle("-fx-font-size: 13; -fx-text-fill: #7f8c8d;");
 
+        // Bouton d'actualisation manuelle — recharge tout le panel
+        Button btnActualiser = new Button("🔄 Actualiser les statistiques");
+        btnActualiser.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 7 16; -fx-font-weight: bold;");
+        Label lblMaj = new Label("Les données sont recalculées à chaque ouverture du tableau de bord.");
+        lblMaj.setStyle("-fx-font-size: 11; -fx-text-fill: #95a5a6;");
+        HBox barActu = new HBox(12, btnActualiser, lblMaj);
+        barActu.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        // Le clic recrée le panel entier (pattern identique au menu)
+        btnActualiser.setOnAction(e -> {
+            ScrollPane newPanel = createPanel();
+            // Remplacer le contenu dans le ScrollPane parent
+            javafx.scene.Parent parent = btnActualiser.getParent();
+            int depth = 0;
+            while (parent != null && !(parent instanceof ScrollPane) && depth < 10) {
+                parent = parent.getParent(); depth++;
+            }
+            if (parent instanceof ScrollPane) {
+                ((ScrollPane) parent).setContent(newPanel.getContent());
+            }
+        });
+
         // === CARTES STATISTIQUES ===
         List<Salle> salles = salleDAO.obtenirTous();
         // Fusion cours ponctuels + créneaux EDT (4 semaines) → compteurs exacts
@@ -60,7 +82,7 @@ public class DashboardPanel {
         HBox row1 = new HBox(15);
         row1.getChildren().addAll(
             carteStats("🏫 Salles", String.valueOf(salles.size()), "Total enregistrées", "#3498db"),
-            carteStats("📚 Cours", String.valueOf(cours.size()), "Planifiés au total", "#27ae60"),
+            carteStats("📚 Cours", String.valueOf(cours.size()), "Créneaux EDT actifs", "#27ae60"),
             carteStats("📅 Aujourd'hui", String.valueOf(coursAujourdhui), "Cours ce jour", "#9b59b6"),
             carteStats("⚠️ Conflits", String.valueOf(conflits.size()),
                 conflits.isEmpty() ? "Aucun problème" : "À résoudre !",
@@ -77,7 +99,7 @@ public class DashboardPanel {
 
         // === COURS DU JOUR ===
         VBox sectionCours = new VBox(8);
-        Label titreCours = new Label("📋 Cours d'aujourd'hui");
+        Label titreCours = new Label("📋 Créneaux EDT d'aujourd'hui");
         titreCours.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
         List<Cours> coursJour = cours.stream()
@@ -86,7 +108,7 @@ public class DashboardPanel {
             .collect(java.util.stream.Collectors.toList());
 
         if (coursJour.isEmpty()) {
-            Label vide = new Label("Aucun cours planifié aujourd'hui.");
+            Label vide = new Label("Aucun créneau EDT planifié aujourd'hui.");
             vide.setStyle("-fx-font-size: 13; -fx-text-fill: #95a5a6; -fx-padding: 10;");
             sectionCours.getChildren().addAll(titreCours, vide);
         } else {
@@ -171,7 +193,7 @@ public class DashboardPanel {
             sectionSalles.getChildren().add(ligne);
         }
 
-        panel.getChildren().addAll(titre, dateLbl, row1, row2, new Separator(), sectionCours, new Separator(), sectionConflits, new Separator(), sectionSalles);
+        panel.getChildren().addAll(titre, dateLbl, barActu, row1, row2, new Separator(), sectionCours, new Separator(), sectionConflits, new Separator(), sectionSalles);
 
         ScrollPane scroll = new ScrollPane(panel);
         scroll.setFitToWidth(true);

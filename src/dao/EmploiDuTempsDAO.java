@@ -101,6 +101,50 @@ public class EmploiDuTempsDAO {
         return liste;
     }
 
+    /**
+     * Retourne uniquement les EDT dont la classe existe dans la table `classes`.
+     * Évite les données orphelines après suppression d'une classe.
+     */
+    public List<EmploiDuTemps> obtenirTousClassesValides() {
+        List<EmploiDuTemps> liste = new ArrayList<>();
+        String sql = "SELECT e.* FROM emploi_du_temps e " +
+                     "INNER JOIN classes c ON c.nom = e.classe " +
+                     "WHERE e.actif = 1 " +
+                     "ORDER BY e.classe, e.jour_semaine, e.heure_debut";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+				liste.add(mapper(rs));
+			}
+        } catch (SQLException e) { System.err.println("EDT valides: " + e.getMessage()); }
+        return liste;
+    }
+
+    /**
+     * EDT d'un enseignant dont la classe existe encore.
+     */
+    public List<EmploiDuTemps> obtenirParEnseignantClassesValides(String nomComplet) {
+        List<EmploiDuTemps> liste = new ArrayList<>();
+        String[] p = nomComplet.trim().split("\\s+", 2);
+        String nomInverse = p.length == 2 ? p[1] + " " + p[0] : nomComplet;
+        String sql = "SELECT e.* FROM emploi_du_temps e " +
+                     "INNER JOIN classes c ON c.nom = e.classe " +
+                     "WHERE e.actif = 1 " +
+                     "AND (LOWER(e.enseignant) = LOWER(?) OR LOWER(e.enseignant) = LOWER(?)) " +
+                     "ORDER BY e.jour_semaine, e.heure_debut";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nomComplet); ps.setString(2, nomInverse);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+					liste.add(mapper(rs));
+				}
+            }
+        } catch (SQLException e) { System.err.println("EDT ens valides: " + e.getMessage()); }
+        return liste;
+    }
+
     public List<String> obtenirToutesLesClasses() {
         List<String> classes = new ArrayList<>();
         String sql = "SELECT DISTINCT classe FROM emploi_du_temps WHERE actif = 1 ORDER BY classe";

@@ -366,8 +366,9 @@ public class CalendrierPanel {
      * Le champ groupe est marqué "__EDT__" pour les distinguer.
      */
     private List<Cours> convertirEdtEnCours(LocalDate lundi) {
+        // N'utiliser que les EDT dont la classe existe encore
         List<EmploiDuTemps> edtData = (classeFiltre == null)
-            ? edtDAO.obtenirTous()
+            ? edtDAO.obtenirTousClassesValides()
             : edtDAO.obtenirParClasse(classeFiltre);
 
         List<Cours> result = new ArrayList<>();

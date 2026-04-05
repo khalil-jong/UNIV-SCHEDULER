@@ -3,6 +3,7 @@ package ui;
 import java.time.LocalTime;
 import java.util.List;
 
+import dao.ClasseDAO;
 import dao.EmploiDuTempsDAO;
 import dao.SalleDAO;
 import javafx.geometry.Insets;
@@ -32,6 +33,7 @@ import models.Salle;
  */
 public class EmploiDuTempsViewPanel {
 
+    private ClasseDAO         classeDAO = new ClasseDAO();
     private EmploiDuTempsDAO edtDAO  = new EmploiDuTempsDAO();
     private SalleDAO          salleDAO = new SalleDAO();
 
@@ -79,7 +81,8 @@ public class EmploiDuTempsViewPanel {
         if (!modeEnseignant) {
             // ComboBox de sélection de classe
             ComboBox<String> cbClasse = new ComboBox<>();
-            List<String> classes = edtDAO.obtenirToutesLesClasses();
+            // Source unique : table `classes` (sans orphelins EDT)
+            List<String> classes = classeDAO.obtenirNomsClasses();
             cbClasse.getItems().addAll(classes);
             if (classeInitiale != null && classes.contains(classeInitiale)) {
                 cbClasse.setValue(classeInitiale);

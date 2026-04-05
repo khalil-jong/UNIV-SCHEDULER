@@ -103,8 +103,12 @@ public class GestionCoursEDTPanel {
             { btn.setStyle("-fx-background-color:#e74c3c;-fx-text-fill:white;-fx-font-size:11;");
               btn.setOnAction(e -> {
                 Classe cl = getTableView().getItems().get(getIndex());
-                if (confirmer("Supprimer la classe \""+cl.getNom()+"\" ?")) {
-                    classeDAO.supprimer(cl.getId()); items.setAll(classeDAO.obtenirTous());
+                if (confirmer("Supprimer la classe \""+cl.getNom()+"\" ?\n\n" +
+                        "⚠️ Tous les cours et créneaux EDT de cette classe seront aussi supprimés.")) {
+                    classeDAO.supprimer(cl.getId());
+                    items.setAll(classeDAO.obtenirTous());
+                    // Rafraîchir les ComboBox dans les autres onglets
+                    rechargerToutesLesComboBox();
                 }
               });
             }
@@ -301,14 +305,30 @@ public class GestionCoursEDTPanel {
 
 
     // Helpers
+    /** Toutes les ComboBox de classe à synchroniser quand les classes changent */
+    private final java.util.List<ComboBox<String>> toutesLesComboBoxClasse = new java.util.ArrayList<>();
+
+    /** Rafraîchit toutes les ComboBox enregistrées et désélectionne les classes supprimées */
+    private void rechargerToutesLesComboBox() {
+        for (ComboBox<String> cb : toutesLesComboBoxClasse) {
+            String cur = cb.getValue();
+            cb.getItems().setAll(classeDAO.obtenirNomsClasses());
+            if (cur != null && !cb.getItems().contains(cur)) {
+				cb.setValue(null);
+			}
+        }
+    }
+
     private void rechargerClasses(ComboBox<String> cb) {
+        if (!toutesLesComboBoxClasse.contains(cb)) {
+			toutesLesComboBoxClasse.add(cb);
+		}
         String cur = cb.getValue();
         cb.getItems().setAll(classeDAO.obtenirNomsClasses());
         if (cur != null && cb.getItems().contains(cur)) {
 			cb.setValue(cur);
 		}
     }
-
     private boolean confirmer(String msg) {
         Alert a = new Alert(Alert.AlertType.CONFIRMATION, msg, ButtonType.YES, ButtonType.NO);
         Optional<ButtonType> r = a.showAndWait();

@@ -264,11 +264,17 @@ public class CoursDAO {
      * pour la semaine courante uniquement (1 occurrence par créneau).
      * Utilisé par le tableau de bord pour des compteurs exacts.
      */
+    /**
+     * Retourne UNIQUEMENT les créneaux de l'emploi_du_temps comme cours.
+     * Règle métier : un cours = un créneau ajouté dans l'emploi du temps.
+     * La table `cours` (ponctuels) n'est PAS comptabilisée ici.
+     * Seuls les créneaux dont la classe existe encore dans `classes` sont retournés.
+     */
     public List<Cours> obtenirTousAvecEDT() {
-        List<Cours> tous = new ArrayList<>(obtenirTous());
+        List<Cours> tous = new ArrayList<>();
         EmploiDuTempsDAO edtDAO = new EmploiDuTempsDAO();
-        List<EmploiDuTemps> edts = edtDAO.obtenirTous();
-        // Semaine courante seulement → 1 occurrence par créneau
+        // Seuls les EDT dont la classe existe dans la table `classes`
+        List<EmploiDuTemps> edts = edtDAO.obtenirTousClassesValides();
         LocalDate lundi = LocalDate.now().with(DayOfWeek.MONDAY);
         for (EmploiDuTemps e : edts) {
             if (e.getJourSemaine() < 1 || e.getJourSemaine() > 6) {
@@ -276,41 +282,27 @@ public class CoursDAO {
 			}
             LocalDate jourDate = lundi.plusDays(e.getJourSemaine() - 1);
             LocalDateTime debut = jourDate.atTime(e.getHeureDebut());
-            // Éviter les doublons avec un cours déjà inséré en base
-            final String mat = e.getMatiere().toLowerCase();
-            final String ens = e.getEnseignant().toLowerCase();
-            boolean dejaDans = tous.stream().anyMatch(c ->
-                c.getMatiere().toLowerCase().equals(mat) &&
-                c.getEnseignant().toLowerCase().equals(ens) &&
-                c.getDateDebut().equals(debut));
-            if (!dejaDans) {
-                tous.add(new Cours(-(e.getId()), e.getMatiere(), e.getEnseignant(),
-                    e.getClasse(), "", debut, e.getDuree(), e.getSalleId()));
-            }
+            tous.add(new Cours(e.getId(), e.getMatiere(), e.getEnseignant(),
+                e.getClasse(), e.getTypeCours(), debut, e.getDuree(), e.getSalleId()));
         }
         tous.sort((a, b) -> a.getDateDebut().compareTo(b.getDateDebut()));
         return tous;
     }
-
-    /**
-     * Cours d'un enseignant = table `cours` + créneaux EDT convertis
-     * pour les 4 semaines à venir.
-     * Utilisé dans la liste des cours de l'enseignant connecté.
-     */
     public List<Cours> obtenirParEnseignantAvecEDT(String nomComplet) {
         List<Cours> result = new ArrayList<>(obtenirParEnseignant(nomComplet));
+        List<String> classesValides = new dao.ClasseDAO().obtenirNomsClasses();
         EmploiDuTempsDAO edtDAO = new EmploiDuTempsDAO();
         List<EmploiDuTemps> edts = edtDAO.obtenirParEnseignant(nomComplet);
         LocalDate lundi = LocalDate.now().with(DayOfWeek.MONDAY);
         for (int sem = 0; sem < 4; sem++) {
             final LocalDate lundiSem = lundi.plusWeeks(sem);
             for (EmploiDuTemps e : edts) {
-                if (e.getJourSemaine() < 1 || e.getJourSemaine() > 6) {
+                // Ne pas inclure les créneaux d'une classe supprimée
+                if (e.getJourSemaine() < 1 || e.getJourSemaine() > 6 || (!classesValides.isEmpty() && !classesValides.contains(e.getClasse()))) {
 					continue;
 				}
                 LocalDate jourDate = lundiSem.plusDays(e.getJourSemaine() - 1);
                 LocalDateTime debut = jourDate.atTime(e.getHeureDebut());
-                // Doublon basé sur la date exacte (chaque semaine = occurrence distincte)
                 final String mat = e.getMatiere().toLowerCase();
                 boolean dejaDans = result.stream().anyMatch(c ->
                     c.getMatiere().toLowerCase().equals(mat) &&
@@ -324,7 +316,6 @@ public class CoursDAO {
         result.sort((a, b) -> a.getDateDebut().compareTo(b.getDateDebut()));
         return result;
     }
-
     public List<String> detecterConflits() {
         List<Cours> tousLesCours = obtenirTous();
         List<String> conflits = new ArrayList<>();

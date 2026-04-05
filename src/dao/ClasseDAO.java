@@ -34,10 +34,35 @@ public class ClasseDAO {
     }
 
     public void supprimer(int id) {
+        // Récupérer le nom de la classe avant suppression (pour nettoyer les données liées)
+        String nomClasse = null;
         try (Connection c = DatabaseConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement("DELETE FROM classes WHERE id=?")) {
-            ps.setInt(1, id); ps.executeUpdate();
-        } catch (SQLException e) { throw new RuntimeException(e.getMessage(), e); }
+             PreparedStatement ps = c.prepareStatement("SELECT nom FROM classes WHERE id=?")) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) { if (rs.next()) {
+				nomClasse = rs.getString("nom");
+			} }
+        } catch (SQLException e) { System.err.println("Erreur lecture nom classe: " + e.getMessage()); }
+
+        if (nomClasse == null) {
+			return; // classe introuvable, rien à faire
+		}
+
+        // Supprimer en cascade : cours, emploi_du_temps, puis la classe elle-même
+        try (Connection c = DatabaseConnection.getConnection()) {
+            // 1. Cours ponctuels de cette classe
+            try (PreparedStatement ps = c.prepareStatement("DELETE FROM cours WHERE classe = ?")) {
+                ps.setString(1, nomClasse); ps.executeUpdate();
+            }
+            // 2. Créneaux EDT de cette classe
+            try (PreparedStatement ps = c.prepareStatement("DELETE FROM emploi_du_temps WHERE classe = ?")) {
+                ps.setString(1, nomClasse); ps.executeUpdate();
+            }
+            // 3. La classe elle-même
+            try (PreparedStatement ps = c.prepareStatement("DELETE FROM classes WHERE id = ?")) {
+                ps.setInt(1, id); ps.executeUpdate();
+            }
+        } catch (SQLException e) { throw new RuntimeException("Erreur suppression cascade : " + e.getMessage(), e); }
     }
 
     public List<Classe> obtenirTous() {
@@ -53,6 +78,8 @@ public class ClasseDAO {
     }
 
     public List<String> obtenirNomsClasses() {
+        // Source unique : la table classes — sans fallback vers cours/EDT
+        // pour éviter de remonter des classes supprimées
         List<String> noms = new ArrayList<>();
         String sql = "SELECT nom FROM classes ORDER BY nom";
         try (Connection c = DatabaseConnection.getConnection();
@@ -61,18 +88,8 @@ public class ClasseDAO {
 				noms.add(rs.getString("nom"));
 			}
         } catch (SQLException e) { System.err.println(e.getMessage()); }
-        // Fallback: récupérer aussi depuis cours et EDT si la table classes est vide
-        if (noms.isEmpty()) {
-            try (Connection c = DatabaseConnection.getConnection(); Statement st = c.createStatement()) {
-                ResultSet rs = st.executeQuery("SELECT DISTINCT classe FROM cours UNION SELECT DISTINCT classe FROM emploi_du_temps ORDER BY classe");
-                while (rs.next()) {
-					noms.add(rs.getString(1));
-				}
-            } catch (SQLException e) { System.err.println(e.getMessage()); }
-        }
         return noms;
     }
-
     private Classe mapper(ResultSet rs) throws SQLException {
         return new Classe(rs.getInt("id"), rs.getString("nom"),
             rs.getString("filiere"), rs.getString("niveau"), rs.getInt("effectif"));
