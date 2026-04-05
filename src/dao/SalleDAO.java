@@ -147,19 +147,33 @@ public class SalleDAO {
         return salles;
     }
 
-    // Salles disponibles sur un créneau donné (pas de cours à cette heure-là)
+    // Salles disponibles sur un créneau donné :
+    // vérifie AUSSI les créneaux de l'emploi_du_temps (jour de semaine + heure)
     public List<Salle> obtenirSallesDisponibles(java.time.LocalDateTime debut, int dureeMinutes) {
         List<Salle> salles = new ArrayList<>();
-        String sql = "SELECT * FROM salles WHERE id NOT IN (" +
-                     "SELECT salle_id FROM cours WHERE " +
-                     "date_debut < ? AND DATE_ADD(date_debut, INTERVAL duree MINUTE) > ?" +
-                     ") ORDER BY batiment, numero";
+        // Exclure les salles occupées par un cours ponctuel
+        // ET par un créneau EDT qui chevauche le créneau demandé
+        int jourSemaine = debut.getDayOfWeek().getValue(); // 1=Lun..6=Sam
+        java.time.LocalTime hDebut = debut.toLocalTime();
+        java.time.LocalTime hFin   = hDebut.plusMinutes(dureeMinutes);
+        String sql =
+            "SELECT * FROM salles WHERE id NOT IN (" +
+            "  SELECT salle_id FROM cours " +
+            "  WHERE date_debut < ? AND DATE_ADD(date_debut, INTERVAL duree MINUTE) > ?" +
+            "  UNION " +
+            "  SELECT salle_id FROM emploi_du_temps " +
+            "  WHERE actif = 1 AND jour_semaine = ? " +
+            "  AND heure_debut < ? AND ADDTIME(heure_debut, SEC_TO_TIME(duree*60)) > ?" +
+            ") ORDER BY batiment, numero";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             java.time.LocalDateTime fin = debut.plusMinutes(dureeMinutes);
-            pstmt.setTimestamp(1, Timestamp.valueOf(fin));
-            pstmt.setTimestamp(2, Timestamp.valueOf(debut));
-            try (ResultSet rs = pstmt.executeQuery()) {
+            ps.setTimestamp(1, Timestamp.valueOf(fin));
+            ps.setTimestamp(2, Timestamp.valueOf(debut));
+            ps.setInt(3, jourSemaine);
+            ps.setTime(4, java.sql.Time.valueOf(hFin));
+            ps.setTime(5, java.sql.Time.valueOf(hDebut));
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
 					salles.add(mapper(rs));
 				}
@@ -168,6 +182,82 @@ public class SalleDAO {
             System.err.println("Erreur disponibilité: " + e.getMessage());
         }
         return salles;
+    }
+
+    // Vérifier si une salle est occupée à un instant donné (temps réel)
+    public boolean estOccupeeMaintenantET(int salleId, java.time.LocalDateTime maintenant) {
+        int jour = maintenant.getDayOfWeek().getValue();
+        java.time.LocalTime heure = maintenant.toLocalTime();
+        // Cours ponctuel en cours
+        String sql1 = "SELECT COUNT(*) FROM cours WHERE salle_id = ? " +
+            "AND date_debut <= ? AND DATE_ADD(date_debut, INTERVAL duree MINUTE) > ?";
+        // Créneau EDT en cours
+        String sql2 = "SELECT COUNT(*) FROM emploi_du_temps WHERE salle_id = ? AND actif = 1 " +
+            "AND jour_semaine = ? AND heure_debut <= ? AND ADDTIME(heure_debut, SEC_TO_TIME(duree*60)) > ?";
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sql1)) {
+                ps.setInt(1, salleId);
+                ps.setTimestamp(2, Timestamp.valueOf(maintenant));
+                ps.setTimestamp(3, Timestamp.valueOf(maintenant));
+                try (ResultSet rs = ps.executeQuery()) { if (rs.next() && rs.getInt(1) > 0) {
+					return true;
+				} }
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sql2)) {
+                ps.setInt(1, salleId);
+                ps.setInt(2, jour);
+                ps.setTime(3, java.sql.Time.valueOf(heure));
+                ps.setTime(4, java.sql.Time.valueOf(heure));
+                try (ResultSet rs = ps.executeQuery()) { if (rs.next() && rs.getInt(1) > 0) {
+					return true;
+				} }
+            }
+        } catch (SQLException e) { System.err.println("Erreur statut: " + e.getMessage()); }
+        return false;
+    }
+
+    // Récupérer le cours/créneau en cours dans une salle
+    public String getOccupantActuel(int salleId, java.time.LocalDateTime maintenant) {
+        int jour = maintenant.getDayOfWeek().getValue();
+        java.time.LocalTime heure = maintenant.toLocalTime();
+        String sql1 = "SELECT matiere, enseignant, classe, " +
+            "DATE_FORMAT(date_debut,'%H:%i') as h_debut, " +
+            "DATE_FORMAT(DATE_ADD(date_debut, INTERVAL duree MINUTE),'%H:%i') as h_fin " +
+            "FROM cours WHERE salle_id = ? " +
+            "AND date_debut <= ? AND DATE_ADD(date_debut, INTERVAL duree MINUTE) > ? LIMIT 1";
+        String sql2 = "SELECT matiere, enseignant, classe, " +
+            "TIME_FORMAT(heure_debut,'%H:%i') as h_debut, " +
+            "TIME_FORMAT(ADDTIME(heure_debut,SEC_TO_TIME(duree*60)),'%H:%i') as h_fin " +
+            "FROM emploi_du_temps WHERE salle_id = ? AND actif = 1 AND jour_semaine = ? " +
+            "AND heure_debut <= ? AND ADDTIME(heure_debut,SEC_TO_TIME(duree*60)) > ? LIMIT 1";
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sql1)) {
+                ps.setInt(1, salleId);
+                ps.setTimestamp(2, Timestamp.valueOf(maintenant));
+                ps.setTimestamp(3, Timestamp.valueOf(maintenant));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+						return rs.getString("matiere") + " – " + rs.getString("enseignant")
+						    + " / " + rs.getString("classe")
+						    + "  (" + rs.getString("h_debut") + "→" + rs.getString("h_fin") + ")";
+					}
+                }
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sql2)) {
+                ps.setInt(1, salleId);
+                ps.setInt(2, jour);
+                ps.setTime(3, java.sql.Time.valueOf(heure));
+                ps.setTime(4, java.sql.Time.valueOf(heure));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+						return rs.getString("matiere") + " – " + rs.getString("enseignant")
+						    + " / " + rs.getString("classe")
+						    + "  (" + rs.getString("h_debut") + "→" + rs.getString("h_fin") + ") [EDT]";
+					}
+                }
+            }
+        } catch (SQLException e) { System.err.println("Erreur occupant: " + e.getMessage()); }
+        return "";
     }
 
     private Salle mapper(ResultSet rs) throws SQLException {

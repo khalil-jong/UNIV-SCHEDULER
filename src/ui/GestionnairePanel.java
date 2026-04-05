@@ -60,14 +60,13 @@ public class GestionnairePanel {
 
         menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "PLANIFICATION");
-        // Menu unifié : Classes + EDT + Cours ponctuels
         ajouterBouton(menu, "🎓 Classes, EDT & Cours",  root, () -> new GestionCoursEDTPanel().createPanel());
         ajouterBouton(menu, "👁 Voir un EDT (classe)",   root, () -> new EmploiDuTempsViewPanel(null).createPanel());
+        ajouterBouton(menu, "🏫 Salles disponibles",     root, () -> new SallesDisponiblesPanel().createPanel());
 
         menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "MESSAGERIE");
         ajouterBouton(menu, "📬 Boîte de réception",   root, () -> new MessageriePanelGestionnaire(utilisateur).createPanel());
-
 
         menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "RAPPORTS");
