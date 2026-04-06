@@ -93,6 +93,39 @@ public class SalleDAO {
         return null;
     }
 
+
+    /** Salles d'un bâtiment donné, triées par numéro */
+    public List<Salle> obtenirParBatiment(String nomBatiment) {
+        List<Salle> salles = new ArrayList<>();
+        String sql = "SELECT * FROM salles WHERE batiment = ? ORDER BY numero";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nomBatiment);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+					salles.add(mapper(rs));
+				}
+            }
+        } catch (SQLException e) { System.err.println("Salles/bâtiment: " + e.getMessage()); }
+        return salles;
+    }
+
+    /** Numéros de salles existants pour un bâtiment (pour vérification doublon) */
+    public List<String> obtenirNumerosPourBatiment(String nomBatiment) {
+        List<String> nums = new ArrayList<>();
+        String sql = "SELECT numero FROM salles WHERE batiment = ? ORDER BY numero";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nomBatiment);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+					nums.add(rs.getString("numero"));
+				}
+            }
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        return nums;
+    }
+
     public List<Salle> rechercherParCapacite(int capaciteMin) {
         List<Salle> salles = new ArrayList<>();
         String sql = "SELECT * FROM salles WHERE capacite >= ? ORDER BY capacite ASC";

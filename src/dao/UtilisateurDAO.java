@@ -74,6 +74,31 @@ public class UtilisateurDAO {
         }
     }
 
+
+    public void modifier(Utilisateur u) {
+        // Si mot de passe vide, ne pas le changer
+        String sql = u.getMotDePasse() == null || u.getMotDePasse().isEmpty()
+            ? "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=? WHERE id=?"
+            : "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=? WHERE id=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, u.getNom());
+            ps.setString(2, u.getPrenom());
+            ps.setString(3, u.getLogin());
+            if (u.getMotDePasse() != null && !u.getMotDePasse().isEmpty()) {
+                ps.setString(4, u.getMotDePasse());
+                ps.setString(5, u.getRole());
+                ps.setInt(6, u.getId());
+            } else {
+                ps.setString(4, u.getRole());
+                ps.setInt(5, u.getId());
+            }
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Impossible de modifier l'utilisateur : " + e.getMessage(), e);
+        }
+    }
+
     public void supprimer(int id) {
         String sql = "DELETE FROM utilisateurs WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
