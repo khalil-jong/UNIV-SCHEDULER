@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : sam. 28 mars 2026 à 01:23
+-- Généré le : dim. 12 avr. 2026 à 06:20
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -40,9 +40,8 @@ CREATE TABLE `batiments` (
 --
 
 INSERT INTO `batiments` (`id`, `nom`, `localisation`, `nombre_etages`, `created_at`) VALUES
-(1, 'Bâtiment A', 'Campus principal - Bloc A', 3, '2026-03-13 06:23:27'),
-(2, 'Bâtiment B', 'Campus principal - Bloc B', 2, '2026-03-13 06:23:27'),
-(3, 'Bâtiment C', 'Campus secondaire', 1, '2026-03-13 06:23:27');
+(4, 'UFR-SET', 'A droite de l\'entrée principale', 0, '2026-04-05 13:55:21'),
+(5, 'UFR-SES', 'Juste avant l\'entrée du campus social', 0, '2026-04-05 13:56:44');
 
 -- --------------------------------------------------------
 
@@ -64,11 +63,7 @@ CREATE TABLE `classes` (
 --
 
 INSERT INTO `classes` (`id`, `nom`, `filiere`, `niveau`, `effectif`, `created_at`) VALUES
-(1, 'L1-Informatique', 'Informatique', 'Licence 1', 45, '2026-03-14 13:24:07'),
-(2, 'L2-Informatique', 'Informatique', 'Licence 2', 38, '2026-03-14 13:24:07'),
-(3, 'L3-Informatique', 'Informatique', 'Licence 3', 30, '2026-03-14 13:24:07'),
-(4, 'L1-Mathématiques', 'Mathématiques', 'Licence 1', 40, '2026-03-14 13:24:07'),
-(5, 'M1-Réseaux', 'Réseaux', 'Master 1', 22, '2026-03-14 13:24:07');
+(1, 'L1-informatique', 'INFORMATIQUE', 'Licence 1', 138, '2026-04-05 14:30:51');
 
 -- --------------------------------------------------------
 
@@ -87,15 +82,6 @@ CREATE TABLE `cours` (
   `salle_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Déchargement des données de la table `cours`
---
-
-INSERT INTO `cours` (`id`, `matiere`, `enseignant`, `classe`, `groupe`, `date_debut`, `duree`, `salle_id`, `created_at`) VALUES
-(16, 'Analyse', 'alssainy diallo', 'L1-Informatique', '', '2026-03-14 10:00:00', 120, 1, '2026-03-14 15:46:13'),
-(17, 'Programmation', 'alssainy diallo', 'L1-Informatique', '', '2026-03-10 09:00:00', 180, 2, '2026-03-14 21:02:57'),
-(18, 'mathematique', 'alssainy diallo', 'L1-Mathématiques', '', '2026-03-09 16:00:00', 90, 4, '2026-03-15 02:03:17');
 
 -- --------------------------------------------------------
 
@@ -117,17 +103,6 @@ CREATE TABLE `emploi_du_temps` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Déchargement des données de la table `emploi_du_temps`
---
-
-INSERT INTO `emploi_du_temps` (`id`, `classe`, `matiere`, `enseignant`, `salle_id`, `jour_semaine`, `heure_debut`, `duree`, `type_cours`, `actif`, `created_at`) VALUES
-(12, 'L1-Informatique', 'Algorithme', 'alssainy diallo', 3, 1, '08:00:00', 120, 'CM', 1, '2026-03-14 13:56:46'),
-(14, 'L1-Informatique', 'System d\'exploitation', 'Jean Martin', 1, 1, '14:00:00', 120, 'TD', 1, '2026-03-14 14:01:43'),
-(15, 'L1-Informatique', 'Analyse', 'alssainy diallo', 1, 6, '10:00:00', 120, 'CM', 1, '2026-03-14 15:46:13'),
-(16, 'L1-Informatique', 'Programmation', 'alssainy diallo', 2, 2, '09:00:00', 180, 'CM', 1, '2026-03-14 21:02:57'),
-(17, 'L1-Mathématiques', 'mathematique', 'alssainy diallo', 4, 1, '16:00:00', 90, 'TP', 1, '2026-03-15 02:03:17');
-
 -- --------------------------------------------------------
 
 --
@@ -144,7 +119,8 @@ CREATE TABLE `messages` (
   `type` enum('RESERVATION','RECLAMATION','GENERAL','ALERTE') DEFAULT 'GENERAL',
   `lu` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `destinataire_role` varchar(20) DEFAULT 'GESTIONNAIRE'
+  `destinataire_role` varchar(20) DEFAULT 'GESTIONNAIRE',
+  `destinataire_id` int(11) DEFAULT NULL COMMENT 'ID utilisateur destinataire (NULL = tous du rôle)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -171,12 +147,14 @@ CREATE TABLE `salles` (
 --
 
 INSERT INTO `salles` (`id`, `numero`, `capacite`, `type`, `batiment`, `etage`, `videoprojecteur`, `tableau_interactif`, `climatisation`, `created_at`) VALUES
-(1, 'A101', 50, 'TD', 'Bâtiment A', '1er étage', 1, 0, 1, '2026-03-13 06:23:27'),
-(2, 'A102', 30, 'TP', 'Bâtiment A', '1er étage', 1, 1, 0, '2026-03-13 06:23:27'),
-(3, 'A201', 100, 'Amphi', 'Bâtiment A', '2e étage', 1, 1, 1, '2026-03-13 06:23:27'),
-(4, 'B101', 45, 'TD', 'Bâtiment B', '1er étage', 1, 1, 1, '2026-03-13 06:23:27'),
-(5, 'B102', 60, 'TP', 'Bâtiment B', '1er étage', 1, 0, 1, '2026-03-13 06:23:27'),
-(6, 'C101', 25, 'TD', 'Bâtiment C', '1er étage', 1, 1, 0, '2026-03-13 06:23:27');
+(8, '1', 150, 'Amphi', 'UFR-SET', '', 1, 1, 1, '2026-04-05 14:22:23'),
+(9, '2', 100, 'Amphi', 'UFR-SET', '', 1, 1, 1, '2026-04-05 14:23:33'),
+(10, '3', 130, 'Amphi', 'UFR-SET', '', 1, 1, 0, '2026-04-05 14:24:31'),
+(11, '4', 150, 'Amphi', 'UFR-SET', '', 1, 1, 0, '2026-04-05 14:25:39'),
+(13, '5', 70, 'TD', 'UFR-SET', '', 1, 1, 0, '2026-04-05 14:26:56'),
+(14, '6', 50, 'TD', 'UFR-SET', '', 1, 1, 1, '2026-04-05 14:27:34'),
+(15, '7', 60, 'TD', 'UFR-SET', '', 0, 1, 1, '2026-04-05 14:27:59'),
+(16, '8', 35, 'TP', 'UFR-SET', '', 1, 1, 1, '2026-04-05 14:28:41');
 
 -- --------------------------------------------------------
 
@@ -200,7 +178,7 @@ CREATE TABLE `utilisateurs` (
 --
 
 INSERT INTO `utilisateurs` (`id`, `nom`, `prenom`, `login`, `mot_de_passe`, `role`, `created_at`, `classe`) VALUES
-(1, 'Admin', 'Système', 'admin', 'admin123', 'ADMIN', '2026-03-13 06:23:27', NULL),
+(1, 'Ibra', 'Diongue', 'admin', 'admin123', 'ADMIN', '2026-03-13 06:23:27', NULL),
 (2, 'Diallo', 'Ibrahima', 'gestionnaire', 'gest123', 'GESTIONNAIRE', '2026-03-13 06:23:27', NULL),
 (3, 'Martin', 'Jean', 'enseignant', 'ens123', 'ENSEIGNANT', '2026-03-13 06:23:27', NULL),
 (4, 'Ndiaye', 'Fatou', 'etudiant', 'etu123', 'ETUDIANT', '2026-03-13 06:23:27', NULL),
@@ -245,7 +223,8 @@ ALTER TABLE `emploi_du_temps`
 --
 ALTER TABLE `messages`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `expediteur_id` (`expediteur_id`);
+  ADD KEY `expediteur_id` (`expediteur_id`),
+  ADD KEY `idx_dest_id` (`destinataire_id`);
 
 --
 -- Index pour la table `salles`
@@ -269,43 +248,43 @@ ALTER TABLE `utilisateurs`
 -- AUTO_INCREMENT pour la table `batiments`
 --
 ALTER TABLE `batiments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT pour la table `classes`
 --
 ALTER TABLE `classes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `cours`
 --
 ALTER TABLE `cours`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `emploi_du_temps`
 --
 ALTER TABLE `emploi_du_temps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pour la table `salles`
 --
 ALTER TABLE `salles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT pour la table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Contraintes pour les tables déchargées

@@ -12,7 +12,8 @@ public class Message {
     private String type;
     private boolean lu;
     private LocalDateTime createdAt;
-    private String destinataireRole; // GESTIONNAIRE ou ADMIN
+    private String destinataireRole; // GESTIONNAIRE, ADMIN, ENSEIGNANT, ETUDIANT
+    private int    destinataireId;   // 0 = tous du rôle, >0 = utilisateur spécifique
 
     public Message() {}
 
@@ -42,6 +43,8 @@ public class Message {
     public String getDestinataireRole()      { return destinataireRole != null ? destinataireRole : "GESTIONNAIRE"; }
     public void setLu(boolean lu)            { this.lu = lu; }
     public void setDestinataireRole(String d){ this.destinataireRole = d; }
+    public int    getDestinataireId()            { return destinataireId; }
+    public void   setDestinataireId(int id)      { this.destinataireId = id; }
 
     public String getTypeLabel() {
         switch (getType()) {

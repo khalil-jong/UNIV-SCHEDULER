@@ -54,9 +54,8 @@ public class GestionnairePanel {
         menu.setStyle("-fx-background-color: #2ecc71;");
 
         ajouterTitreMenu(menu, "VUE GÉNÉRALE");
-        ajouterBouton(menu, "📊 Tableau de bord",     root, () -> new DashboardPanel().createPanel());
-        ajouterBouton(menu, "📅 Calendrier des cours", root, () -> new CalendrierPanel().createPanel());
-        ajouterBouton(menu, "🔔 Alertes & Conflits",   root, () -> new AlertesPanel().createPanel());
+        ajouterBouton(menu, "📊 Tableau de bord",      root, () -> new DashboardPanel().createPanel());
+        ajouterBouton(menu, "📅 Calendrier des cours",  root, () -> new CalendrierPanel().createPanel());
 
         menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "PLANIFICATION");
@@ -65,8 +64,10 @@ public class GestionnairePanel {
         ajouterBouton(menu, "🏫 Salles disponibles",     root, () -> new SallesDisponiblesPanel().createPanel());
 
         menu.getChildren().add(new Separator());
-        ajouterTitreMenu(menu, "MESSAGERIE");
-        ajouterBouton(menu, "📬 Boîte de réception",   root, () -> new MessageriePanelGestionnaire(utilisateur).createPanel());
+        ajouterTitreMenu(menu, "MESSAGERIE & COMMUNICATION");
+        ajouterBouton(menu, "📬 Boîte de réception",    root, () -> new MessageriePanelGestionnaire(utilisateur).createPanel());
+        ajouterBouton(menu, "📤 Envoyer un message",    root, () -> new EnvoiMessagePanel(utilisateur).createPanel());
+        ajouterBouton(menu, "🔔 Alertes & Conflits",    root, () -> new AlertesPanel().createPanel());
 
         menu.getChildren().add(new Separator());
         ajouterTitreMenu(menu, "RAPPORTS");
