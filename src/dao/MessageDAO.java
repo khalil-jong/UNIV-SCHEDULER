@@ -115,7 +115,12 @@ public class MessageDAO {
     }
 
     public void marquerLu(int id) {
-        exec("UPDATE messages SET lu = 1 WHERE id = " + id);
+        String sql = "UPDATE messages SET lu = 1 WHERE id = ?";
+        try (Connection c = DatabaseConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
     }
 
     public void marquerTousLus() {
@@ -127,7 +132,12 @@ public class MessageDAO {
     }
 
     public void supprimer(int id) {
-        exec("DELETE FROM messages WHERE id = " + id);
+        String sql = "DELETE FROM messages WHERE id = ?";
+        try (Connection c = DatabaseConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
     }
 
     private List<Message> requete(String sql) {

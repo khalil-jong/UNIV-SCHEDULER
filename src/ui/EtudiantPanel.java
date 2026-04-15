@@ -20,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
@@ -56,6 +57,10 @@ public class EtudiantPanel {
     public EtudiantPanel(Utilisateur utilisateur, UnivSchedulerApp app) {
         this.utilisateur = utilisateur;
         this.app = app;
+        // Pré-remplir la classe depuis le profil utilisateur (évite la sélection manuelle)
+        if (utilisateur.hasClasse()) {
+            this.classeEtudiant = utilisateur.getClasse();
+        }
     }
 
     public BorderPane createPanel() {
@@ -99,6 +104,8 @@ public class EtudiantPanel {
         String[][] items = {
             {"🏠 Accueil",               "accueil"},
             {"📅 Mon emploi du temps",   "edt"},
+            {"📨 Réserver une salle",    "reservation"},
+            {"🔧 Signaler un problème",  "signalement"},
             {"🔍 Chercher salle libre",  "salle"},
             {msgLabel,                   "messages"}
         };
@@ -115,6 +122,8 @@ public class EtudiantPanel {
                 switch (item[1]) {
                     case "accueil":   root.setCenter(creerAccueil(root));        break;
                     case "edt":       root.setCenter(creerMonEmploiDuTemps());   break;
+                    case "reservation": root.setCenter(new ReservationPanel(utilisateur).createPanel()); break;
+                    case "signalement": root.setCenter(creerSignalement());      break;
                     case "salle":     root.setCenter(creerRechercheSalle());     break;
                     case "messages":  root.setCenter(creerBoiteReception());     break;
                 }
@@ -184,6 +193,71 @@ public class EtudiantPanel {
             ScrollPane sp = new ScrollPane(vb); sp.setFitToWidth(true); return sp;
         }
         return new EmploiDuTempsViewPanel(classeEtudiant).createPanel();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    //  SIGNALEMENT
+    // ════════════════════════════════════════════════════════════
+    private ScrollPane creerSignalement() {
+        VBox panel = new VBox(15); panel.setPadding(new Insets(25));
+        Label titre = new Label("🔧 Signaler un Problème Technique");
+        titre.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+        Label desc = new Label("Votre signalement sera transmis directement au gestionnaire dans sa boîte de réception.");
+        desc.setStyle("-fx-font-size:12;-fx-text-fill:#555;"); desc.setWrapText(true);
+
+        GridPane grid = new GridPane(); grid.setHgap(12); grid.setVgap(12); grid.setPadding(new Insets(16));
+        grid.setStyle("-fx-border-color:#ddd;-fx-background-color:white;-fx-border-radius:6;");
+
+        ComboBox<Salle> cbSalle = new ComboBox<>(FXCollections.observableArrayList(salleDAO.obtenirTous()));
+        cbSalle.setPromptText("Sélectionner une salle"); cbSalle.setPrefWidth(280);
+        cbSalle.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Salle s, boolean e) {
+                super.updateItem(s, e); setText(e || s == null ? null : s.getNumero() + " — " + s.getBatiment());
+            }
+        });
+        cbSalle.setButtonCell(new ListCell<>() {
+            @Override protected void updateItem(Salle s, boolean e) {
+                super.updateItem(s, e); setText(e || s == null ? "Sélectionner une salle" : s.getNumero() + " — " + s.getBatiment());
+            }
+        });
+
+        ComboBox<String> cbType = new ComboBox<>();
+        cbType.getItems().addAll("Problème électrique", "Vidéoprojecteur défaillant",
+            "Tableau interactif défaillant", "Climatisation", "Mobilier cassé", "Autre");
+        cbType.setPromptText("Type de problème"); cbType.setPrefWidth(280);
+
+        TextArea taDesc = new TextArea(); taDesc.setPromptText("Décrivez le problème en détail...");
+        taDesc.setPrefHeight(100); taDesc.setWrapText(true);
+
+        grid.add(new Label("Salle :"),      0, 0); grid.add(cbSalle, 1, 0);
+        grid.add(new Label("Problème :"),   0, 1); grid.add(cbType,  1, 1);
+        grid.add(new Label("Description :"),0, 2); grid.add(taDesc,  1, 2);
+
+        Label msgS = new Label(""); msgS.setStyle("-fx-font-size:12;"); msgS.setWrapText(true);
+
+        Button btnEnvoyer = new Button("📤 Envoyer au gestionnaire");
+        btnEnvoyer.setStyle("-fx-background-color:#e74c3c;-fx-text-fill:white;-fx-padding:10 20;-fx-font-weight:bold;");
+        btnEnvoyer.setOnAction(e -> {
+            if (cbSalle.getValue() == null || cbType.getValue() == null || taDesc.getText().isEmpty()) {
+                msgS.setText("⚠️ Remplissez tous les champs."); msgS.setStyle("-fx-text-fill:#e67e22;"); return;
+            }
+            String sujet = "[Signalement] " + cbType.getValue() + " — Salle " + cbSalle.getValue().getNumero();
+            String corps = "Signalement de : " + utilisateur.getNomComplet() + " (Étudiant)\n"
+                + "Salle : " + cbSalle.getValue().getNumero() + " — " + cbSalle.getValue().getBatiment() + "\n"
+                + "Problème : " + cbType.getValue() + "\n\n" + taDesc.getText().trim();
+            models.Message msg = new models.Message(0, utilisateur.getId(), utilisateur.getNomComplet(),
+                utilisateur.getRole(), sujet, corps, "RECLAMATION", false, null);
+            try {
+                msgDAO.envoyer(msg);
+                msgS.setText("✅ Signalement envoyé au gestionnaire.");
+                msgS.setStyle("-fx-text-fill:#27ae60;");
+                cbSalle.setValue(null); cbType.setValue(null); taDesc.clear();
+            } catch (Exception ex) { msgS.setText("❌ " + ex.getMessage()); msgS.setStyle("-fx-text-fill:#e74c3c;"); }
+        });
+
+        panel.getChildren().addAll(titre, desc, grid, btnEnvoyer, msgS);
+        ScrollPane scroll = new ScrollPane(panel); scroll.setFitToWidth(true);
+        return scroll;
     }
 
     // ════════════════════════════════════════════════════════════

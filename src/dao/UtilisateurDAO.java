@@ -21,14 +21,7 @@ public class UtilisateurDAO {
             pstmt.setString(2, motDePasse);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Utilisateur(
-                        rs.getInt("id"),
-                        rs.getString("nom"),
-                        rs.getString("prenom"),
-                        rs.getString("login"),
-                        rs.getString("mot_de_passe"),
-                        rs.getString("role")
-                    );
+                    return mapper(rs);
                 }
             }
         } catch (SQLException e) {
@@ -44,14 +37,7 @@ public class UtilisateurDAO {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                liste.add(new Utilisateur(
-                    rs.getInt("id"),
-                    rs.getString("nom"),
-                    rs.getString("prenom"),
-                    rs.getString("login"),
-                    rs.getString("mot_de_passe"),
-                    rs.getString("role")
-                ));
+                liste.add(mapper(rs));
             }
         } catch (SQLException e) {
             System.err.println("Erreur lecture utilisateurs: " + e.getMessage());
@@ -60,7 +46,7 @@ public class UtilisateurDAO {
     }
 
     public void ajouter(Utilisateur u) {
-        String sql = "INSERT INTO utilisateurs (nom, prenom, login, mot_de_passe, role) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO utilisateurs (nom, prenom, login, mot_de_passe, role, classe) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, u.getNom());
@@ -68,31 +54,39 @@ public class UtilisateurDAO {
             pstmt.setString(3, u.getLogin());
             pstmt.setString(4, u.getMotDePasse());
             pstmt.setString(5, u.getRole());
+            if (u.getClasse() != null && !u.getClasse().isEmpty()) {
+                pstmt.setString(6, u.getClasse());
+            } else {
+                pstmt.setNull(6, java.sql.Types.VARCHAR);
+            }
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Impossible d'ajouter l'utilisateur : " + e.getMessage(), e);
         }
     }
 
-
     public void modifier(Utilisateur u) {
         // Si mot de passe vide, ne pas le changer
-        String sql = u.getMotDePasse() == null || u.getMotDePasse().isEmpty()
-            ? "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=? WHERE id=?"
-            : "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=? WHERE id=?";
+        boolean changerMdp = u.getMotDePasse() != null && !u.getMotDePasse().isEmpty();
+        String sql = changerMdp
+            ? "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=?, classe=? WHERE id=?"
+            : "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=?, classe=? WHERE id=?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getNom());
             ps.setString(2, u.getPrenom());
             ps.setString(3, u.getLogin());
-            if (u.getMotDePasse() != null && !u.getMotDePasse().isEmpty()) {
-                ps.setString(4, u.getMotDePasse());
-                ps.setString(5, u.getRole());
-                ps.setInt(6, u.getId());
-            } else {
-                ps.setString(4, u.getRole());
-                ps.setInt(5, u.getId());
+            int idx = 4;
+            if (changerMdp) {
+                ps.setString(idx++, u.getMotDePasse());
             }
+            ps.setString(idx++, u.getRole());
+            if (u.getClasse() != null && !u.getClasse().isEmpty()) {
+                ps.setString(idx++, u.getClasse());
+            } else {
+                ps.setNull(idx++, java.sql.Types.VARCHAR);
+            }
+            ps.setInt(idx, u.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Impossible de modifier l'utilisateur : " + e.getMessage(), e);
@@ -134,13 +128,25 @@ public class UtilisateurDAO {
             ps.setString(1, role);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    liste.add(new Utilisateur(
-                        rs.getInt("id"), rs.getString("nom"), rs.getString("prenom"),
-                        rs.getString("login"), rs.getString("mot_de_passe"), rs.getString("role")));
+                    liste.add(mapper(rs));
                 }
             }
         } catch (SQLException e) { System.err.println(e.getMessage()); }
         return liste;
+    }
+
+    /** Centralise la construction d'un Utilisateur depuis un ResultSet */
+    private Utilisateur mapper(ResultSet rs) throws SQLException {
+        Utilisateur u = new Utilisateur(
+            rs.getInt("id"),
+            rs.getString("nom"),
+            rs.getString("prenom"),
+            rs.getString("login"),
+            rs.getString("mot_de_passe"),
+            rs.getString("role")
+        );
+        try { u.setClasse(rs.getString("classe")); } catch (SQLException ignored) {}
+        return u;
     }
 
 }
