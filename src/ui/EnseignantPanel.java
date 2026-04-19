@@ -33,8 +33,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import models.Cours;
 import models.Message;
@@ -246,10 +244,18 @@ public class EnseignantPanel {
             if (dp.getValue() == null) { lblResultat.setText("⚠️  Sélectionnez une date."); return; }
             LocalDateTime debut = LocalDateTime.of(dp.getValue(), LocalTime.of(spH.getValue(), spMin.getValue()));
             List<Salle> dispo = salleDAO.obtenirSallesDisponibles(debut, spDur.getValue());
-            if (spCap.getValue() > 0) dispo = dispo.stream().filter(s -> s.getCapacite() >= spCap.getValue()).collect(Collectors.toList());
-            if (chkV.isSelected()) dispo = dispo.stream().filter(Salle::isVideoprojecteur).collect(Collectors.toList());
-            if (chkT.isSelected()) dispo = dispo.stream().filter(Salle::isTableauInteractif).collect(Collectors.toList());
-            if (chkC.isSelected()) dispo = dispo.stream().filter(Salle::isClimatisation).collect(Collectors.toList());
+            if (spCap.getValue() > 0) {
+				dispo = dispo.stream().filter(s -> s.getCapacite() >= spCap.getValue()).collect(Collectors.toList());
+			}
+            if (chkV.isSelected()) {
+				dispo = dispo.stream().filter(Salle::isVideoprojecteur).collect(Collectors.toList());
+			}
+            if (chkT.isSelected()) {
+				dispo = dispo.stream().filter(Salle::isTableauInteractif).collect(Collectors.toList());
+			}
+            if (chkC.isSelected()) {
+				dispo = dispo.stream().filter(Salle::isClimatisation).collect(Collectors.toList());
+			}
             tableSalles.setItems(FXCollections.observableArrayList(dispo));
             lblResultat.setText(dispo.isEmpty()
                 ? "❌  Aucune salle disponible pour ce créneau."
@@ -273,7 +279,9 @@ public class EnseignantPanel {
 
         final Salle[] salleChoisie = {null};
         tableSalles.getSelectionModel().selectedItemProperty().addListener((obs,old,sel) -> {
-            if (sel == null) return;
+            if (sel == null) {
+				return;
+			}
             salleChoisie[0] = sel;
             lblSalleChoisie.setText("🏫  Salle : " + sel.getNumero() + " — " + sel.getBatiment() + " (Cap: " + sel.getCapacite() + ")");
             lblSalleChoisie.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.SUCCESS + ";-fx-font-weight:bold;-fx-padding:6 10;-fx-background-color:#e8faf5;-fx-background-radius:6;");

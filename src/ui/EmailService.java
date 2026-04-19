@@ -71,11 +71,31 @@ public class EmailService {
     }
 
     /**
-     * Lit les 20 derniers emails de la boîte de réception via IMAP.
+     * Représente un email structuré.
      */
-    public static String lireEmails(String host, String port,
-                                     String user, String password) {
-        StringBuilder sb = new StringBuilder();
+    public static class EmailEntry {
+        public final String de;
+        public final String objet;
+        public final String date;
+        public final String corps;
+        public final boolean lu;
+
+        public EmailEntry(String de, String objet, String date, String corps, boolean lu) {
+            this.de    = de;
+            this.objet = objet;
+            this.date  = date;
+            this.corps = corps;
+            this.lu    = lu;
+        }
+    }
+
+    /**
+     * Lit les 20 derniers emails de la boîte de réception via IMAP.
+     * Retourne une liste d'EmailEntry structurés.
+     */
+    public static java.util.List<EmailEntry> lireEmails(String host, String port,
+                                                         String user, String password) {
+        java.util.List<EmailEntry> result = new java.util.ArrayList<>();
         try {
             Properties props = new Properties();
             props.put("mail.store.protocol", "imaps");
@@ -91,41 +111,55 @@ public class EmailService {
             inbox.open(Folder.READ_ONLY);
 
             int total = inbox.getMessageCount();
-            int debut = Math.max(1, total - 19); // 20 derniers
+            int debut = Math.max(1, total - 19);
 
             Message[] messages = inbox.getMessages(debut, total);
             for (int i = messages.length - 1; i >= 0; i--) {
                 Message m = messages[i];
-                sb.append("─────────────────────────────────\n");
-                sb.append("De      : ").append(m.getFrom()[0]).append("\n");
-                sb.append("Objet   : ").append(m.getSubject()).append("\n");
-                sb.append("Date    : ").append(m.getSentDate()).append("\n");
-                sb.append("Message :\n");
+                String de    = m.getFrom() != null && m.getFrom().length > 0
+                               ? m.getFrom()[0].toString() : "(expéditeur inconnu)";
+                String objet = m.getSubject() != null ? m.getSubject() : "(sans objet)";
+                String date  = m.getSentDate() != null
+                               ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.FRENCH)
+                                   .format(m.getSentDate())
+                               : "";
+                boolean lu   = m.isSet(javax.mail.Flags.Flag.SEEN);
+                String corps;
                 try {
                     Object content = m.getContent();
                     if (content instanceof String) {
-                        sb.append(((String)content).substring(0, Math.min(500, ((String)content).length())));
+                        String raw = (String) content;
+                        corps = raw.substring(0, Math.min(600, raw.length()));
                     } else if (content instanceof Multipart) {
                         Multipart mp = (Multipart) content;
+                        String found = "[Corps non lisible]";
                         for (int j = 0; j < mp.getCount(); j++) {
                             BodyPart bp = mp.getBodyPart(j);
                             if (bp.isMimeType("text/plain")) {
                                 String t = (String) bp.getContent();
-                                sb.append(t.substring(0, Math.min(500, t.length())));
+                                found = t.substring(0, Math.min(600, t.length()));
                                 break;
                             }
                         }
+                        corps = found;
+                    } else {
+                        corps = "[Contenu non textuel]";
                     }
-                } catch (Exception ignored) { sb.append("[Corps non lisible]"); }
-                sb.append("\n\n");
+                } catch (Exception ignored) {
+                    corps = "[Corps non lisible]";
+                }
+                result.add(new EmailEntry(de, objet, date, corps, lu));
             }
             inbox.close(false);
             store.close();
         } catch (Exception e) {
-            sb.append("❌ Erreur IMAP : ").append(e.getMessage()).append("\n");
-            sb.append("Vérifiez les paramètres et que l'accès IMAP est activé dans votre compte email.");
+            result.add(new EmailEntry(
+                "Erreur", "❌ Connexion IMAP impossible", "",
+                "Détail : " + e.getMessage() + "\n\nVérifiez les paramètres et que l'accès IMAP est activé dans votre compte email.",
+                false
+            ));
         }
-        return sb.toString();
+        return result;
     }
 
     private static Properties smtpProps(String host, String port) {

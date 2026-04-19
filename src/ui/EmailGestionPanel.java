@@ -1,15 +1,18 @@
 package ui;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-//import javafx.application.Platform;
-//import javafx.scene.layout.HBox;
 
 /**
  * Panel partagé Envoi / Réception email.
@@ -125,9 +128,9 @@ public class EmailGestionPanel {
         boxEnvoi.getChildren().addAll(gEnvoi, btnEnvoyer, msgEnvoi);
 
         // ── Réception IMAP ───────────────────────────────────────────
-        VBox boxImap = Design.section("📥  Réception d'emails (IMAP)");
+        VBox boxImap = Design.section("📥  Boîte de réception (IMAP)");
         Label noteImap = Design.muted(
-            "Serveur IMAP Gmail : imap.gmail.com — Port 993 (SSL).\n" +
+            "Serveur IMAP Gmail : imap.gmail.com — Port 993 (SSL). " +
             "Utilisez le même email et mot de passe d'application que ci-dessus."
         );
 
@@ -138,12 +141,10 @@ public class EmailGestionPanel {
         gImap.add(fieldLabel("Serveur IMAP :"), 0, 0); gImap.add(tfImapHost, 1, 0);
         gImap.add(fieldLabel("Port :"),          0, 1); gImap.add(tfImapPort, 1, 1);
 
-        Button btnLire  = Design.btnPrimary("📥  Lire les emails reçus", Design.SUCCESS);
-        TextArea taEmails = new TextArea();
-        taEmails.setEditable(false); taEmails.setPrefHeight(160); taEmails.setWrapText(true);
-        taEmails.setPromptText("Les emails reçus s'afficheront ici...");
-        taEmails.setStyle(Design.INPUT_STYLE);
-        Label msgImap = new Label(""); msgImap.setStyle("-fx-font-size:12;"); msgImap.setWrapText(true);
+        Button btnLire   = Design.btnPrimary("📥  Charger les emails", Design.SUCCESS);
+        Label  msgImap   = new Label(""); msgImap.setStyle("-fx-font-size:12;"); msgImap.setWrapText(true);
+        VBox   listeEmails = new VBox(10);
+        listeEmails.setPadding(new Insets(6, 0, 0, 0));
 
         btnLire.setOnAction(e -> {
             if (tfUser.getText().isEmpty() || pfPass.getText().isEmpty()) {
@@ -151,19 +152,30 @@ public class EmailGestionPanel {
                 msgImap.setStyle("-fx-text-fill:" + Design.WARNING + ";-fx-font-size:12;"); return;
             }
             msgImap.setText("🔄 Récupération des emails...");
+            msgImap.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.TEXT_MUTED + ";");
+            listeEmails.getChildren().clear();
             new Thread(() -> {
-                String contenu = EmailService.lireEmails(
+                java.util.List<EmailService.EmailEntry> emails = EmailService.lireEmails(
                     tfImapHost.getText().trim(), tfImapPort.getText().trim(),
                     tfUser.getText().trim(), pfPass.getText());
                 javafx.application.Platform.runLater(() -> {
-                    taEmails.setText(contenu);
-                    msgImap.setText(contenu.isEmpty() ? "Aucun email trouvé." : "✅  Emails chargés.");
-                    msgImap.setStyle("-fx-text-fill:" + Design.SUCCESS + ";-fx-font-size:12;-fx-font-weight:bold;");
+                    listeEmails.getChildren().clear();
+                    if (emails.isEmpty()) {
+                        Label vide = Design.muted("Aucun email trouvé dans la boîte de réception.");
+                        listeEmails.getChildren().add(vide);
+                        msgImap.setText("");
+                    } else {
+                        msgImap.setText("✅  " + emails.size() + " email(s) chargé(s).");
+                        msgImap.setStyle("-fx-text-fill:" + Design.SUCCESS + ";-fx-font-size:12;-fx-font-weight:bold;");
+                        for (EmailService.EmailEntry em : emails) {
+                            listeEmails.getChildren().add(buildEmailCard(em));
+                        }
+                    }
                 });
             }).start();
         });
 
-        boxImap.getChildren().addAll(noteImap, gImap, btnLire, taEmails, msgImap);
+        boxImap.getChildren().addAll(noteImap, gImap, btnLire, msgImap, listeEmails);
 
         panel.getChildren().addAll(boxConfig, boxEnvoi, boxImap);
         ScrollPane scroll = new ScrollPane(panel);
@@ -172,7 +184,102 @@ public class EmailGestionPanel {
         return scroll;
     }
 
-    private TextField styledField(String def, double w) {
+    private javafx.scene.layout.VBox buildEmailCard(EmailService.EmailEntry em) {
+        // Conteneur principal de la carte
+        VBox card = new VBox(0);
+        card.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-border-radius: 10;" +
+            "-fx-background-radius: 10;" +
+            "-fx-border-color: " + (em.lu ? Design.BORDER : Design.ADMIN_ACCENT) + ";" +
+            "-fx-border-width: 1;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);"
+        );
+
+        // ── En-tête de la carte ────────────────────────────────────
+        HBox header = new HBox(12);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(12, 16, 12, 16));
+        header.setStyle(
+            "-fx-background-color: " + (em.lu ? "#f8f9fa" : "#eef4ff") + ";" +
+            "-fx-background-radius: 10 10 0 0;"
+        );
+
+        // Icône lu/non-lu
+        Label icone = new Label(em.lu ? "✉️" : "📩");
+        icone.setStyle("-fx-font-size: 18;");
+
+        // Objet (titre)
+        Label lblObjet = new Label(em.objet);
+        lblObjet.setStyle(
+            "-fx-font-size: 13;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: " + Design.TEXT_DARK + ";"
+        );
+        lblObjet.setWrapText(true);
+        HBox.setHgrow(lblObjet, Priority.ALWAYS);
+
+        // Badge non-lu
+        if (!em.lu) {
+            Label badge = new Label("Nouveau");
+            badge.setStyle(
+                "-fx-background-color: " + Design.ADMIN_ACCENT + ";" +
+                "-fx-text-fill: white;" +
+                "-fx-font-size: 10;" +
+                "-fx-font-weight: bold;" +
+                "-fx-padding: 2 8;" +
+                "-fx-background-radius: 10;"
+            );
+            header.getChildren().addAll(icone, lblObjet, badge);
+        } else {
+            header.getChildren().addAll(icone, lblObjet);
+        }
+
+        card.getChildren().add(header);
+
+        // ── Séparateur ─────────────────────────────────────────────
+        javafx.scene.control.Separator sep = new javafx.scene.control.Separator();
+        sep.setStyle("-fx-background-color: " + Design.BORDER + ";");
+        card.getChildren().add(sep);
+
+        // ── Métadonnées (De / Date) ────────────────────────────────
+        HBox meta = new HBox(24);
+        meta.setPadding(new Insets(8, 16, 8, 16));
+        meta.setAlignment(Pos.CENTER_LEFT);
+        meta.setStyle("-fx-background-color: white;");
+
+        Label lblDe = new Label("👤  " + em.de);
+        lblDe.setStyle("-fx-font-size: 11; -fx-text-fill: " + Design.TEXT_MUTED + ";");
+        lblDe.setWrapText(true);
+        HBox.setHgrow(lblDe, Priority.ALWAYS);
+
+        Label lblDate = new Label("🕐  " + em.date);
+        lblDate.setStyle("-fx-font-size: 11; -fx-text-fill: " + Design.TEXT_MUTED + "; -fx-min-width: 120;");
+
+        meta.getChildren().addAll(lblDe, lblDate);
+        card.getChildren().add(meta);
+
+        // ── Corps du message ───────────────────────────────────────
+        if (em.corps != null && !em.corps.isBlank()) {
+            javafx.scene.control.Separator sep2 = new javafx.scene.control.Separator();
+            sep2.setStyle("-fx-background-color: " + Design.BORDER + ";");
+            card.getChildren().add(sep2);
+
+            Label lblCorps = new Label(em.corps.trim());
+            lblCorps.setStyle(
+                "-fx-font-size: 12;" +
+                "-fx-text-fill: " + Design.TEXT_DARK + ";" +
+                "-fx-line-spacing: 3;"
+            );
+            lblCorps.setWrapText(true);
+            lblCorps.setPadding(new Insets(10, 16, 14, 16));
+            card.getChildren().add(lblCorps);
+        }
+
+        return card;
+    }
+
+        private TextField styledField(String def, double w) {
         TextField tf = new TextField(def);
         tf.setPrefWidth(w);
         tf.setStyle(Design.INPUT_STYLE);

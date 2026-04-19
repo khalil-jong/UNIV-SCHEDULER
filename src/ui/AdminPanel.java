@@ -33,6 +33,16 @@ import models.Batiment;
 import models.Salle;
 import models.Utilisateur;
 
+/**
+ * Panel Administrateur redesigné.
+ * Structure améliorée :
+ *   - Séparation visuelle claire entre tableau et formulaire
+ *   - Indicateur de mode (ajout / modification) bien visible
+ *   - Hiérarchie visuelle cohérente avec Design.java
+ *   - Alignements et espacements harmonisés
+ *
+ * Logique métier inchangée.
+ */
 public class AdminPanel {
 
     private Utilisateur      utilisateur;
@@ -65,14 +75,15 @@ public class AdminPanel {
         menu.setPrefWidth(225);
         menu.setStyle("-fx-background-color: " + Design.ADMIN_MENU_BG + ";");
 
-        // Avatar
-        VBox avatar = new VBox(4);
+        // ── Avatar ────────────────────────────────────────────────────
+        VBox avatar = new VBox(5);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setPadding(new Insets(16, 0, 18, 0));
-        Label ico  = new Label("👤");
+        avatar.setPadding(new Insets(18, 0, 20, 0));
+        Label ico = new Label("👤");
         ico.setStyle("-fx-font-size: 30;");
         Label nom = new Label(utilisateur.getNomComplet());
         nom.setStyle("-fx-text-fill: white; -fx-font-size: 12; -fx-font-weight: bold;");
+        nom.setWrapText(true); nom.setAlignment(Pos.CENTER);
         Label tag = new Label("ADMINISTRATEUR");
         tag.setStyle(
             "-fx-text-fill: " + Design.ADMIN_ACCENT + ";" +
@@ -82,38 +93,35 @@ public class AdminPanel {
         );
         avatar.getChildren().addAll(ico, nom, tag);
         menu.getChildren().add(avatar);
+        menu.getChildren().add(separateur());
 
-        Separator sep0 = new Separator();
-        sep0.setStyle("-fx-background-color: rgba(255,255,255,0.10);");
-        menu.getChildren().add(sep0);
-
-        // ── ADMINISTRATION ───────────────────────────────────────────
+        // ── ADMINISTRATION ────────────────────────────────────────────
         menu.getChildren().add(Design.menuTitle("Administration"));
         ajouterBouton(menu, "📊  Tableau de bord",    root, () -> new DashboardPanel().createPanel());
         ajouterBouton(menu, "👤  Administrateurs",     root, () -> creerGestionParRole("ADMIN"));
         ajouterBouton(menu, "🧑‍💼  Gestionnaires",    root, () -> creerGestionParRole("GESTIONNAIRE"));
         ajouterBouton(menu, "🧑‍🏫  Enseignants",      root, () -> creerGestionParRole("ENSEIGNANT"));
         ajouterBouton(menu, "🎓  Étudiants",           root, () -> creerGestionParRole("ETUDIANT"));
+        menu.getChildren().add(separateur());
 
-        Separator sep1 = new Separator();
-        sep1.setStyle("-fx-background-color: rgba(255,255,255,0.10);");
-        menu.getChildren().add(sep1);
-
-        // ── INFRASTRUCTURE ───────────────────────────────────────────
+        // ── INFRASTRUCTURE ────────────────────────────────────────────
         menu.getChildren().add(Design.menuTitle("Infrastructure"));
         ajouterBouton(menu, "🏗  Bâtiments",  root, () -> creerGestionBatiments());
         ajouterBouton(menu, "🏫  Salles",      root, () -> creerGestionSalles());
+        menu.getChildren().add(separateur());
 
-        Separator sep2 = new Separator();
-        sep2.setStyle("-fx-background-color: rgba(255,255,255,0.10);");
-        menu.getChildren().add(sep2);
-
-        // ── NOTIFICATIONS ────────────────────────────────────────────
+        // ── NOTIFICATIONS ─────────────────────────────────────────────
         menu.getChildren().add(Design.menuTitle("Notifications & Emails"));
         ajouterBouton(menu, "🔔  Alertes & Notifications", root, () -> new AlertesAdminPanel(utilisateur).createPanel());
         ajouterBouton(menu, "📧  Envoi / Réception email",  root, () -> new EmailGestionPanel().createPanel());
 
         return menu;
+    }
+
+    private Separator separateur() {
+        Separator sep = new Separator();
+        sep.setStyle("-fx-background-color: rgba(255,255,255,0.10);");
+        return sep;
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -128,59 +136,61 @@ public class AdminPanel {
             default             -> role;
         };
 
-        VBox panel = new VBox(18);
+        VBox panel = new VBox(22);
         panel.setPadding(new Insets(28));
         panel.setStyle("-fx-background-color: " + Design.BG_LIGHT + ";");
 
         Label titre = Design.pageTitle(titreRole);
+        Label desc  = Design.muted("Cliquez sur une ligne du tableau pour la modifier. Les champs se pré-rempliront automatiquement.");
+        panel.getChildren().addAll(titre, desc);
 
-        // Tableau
+        // ── Tableau ───────────────────────────────────────────────────
         ObservableList<Utilisateur> items =
             FXCollections.observableArrayList(utilisateurDAO.obtenirParRole(role));
         TableView<Utilisateur> table = new TableView<>(items);
         table.setPrefHeight(240);
-        table.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #e8ecf5;");
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: " + Design.BORDER + ";");
         table.setPlaceholder(new Label("Aucun " + role.toLowerCase() + " enregistré."));
 
-        TableColumn<Utilisateur,String> cNom   = new TableColumn<>("Nom complet");
+        TableColumn<Utilisateur, String> cNom   = new TableColumn<>("Nom complet");
         cNom.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNomComplet()));
-        cNom.setPrefWidth(180);
-        TableColumn<Utilisateur,String> cLogin = new TableColumn<>("Login");
+        TableColumn<Utilisateur, String> cLogin = new TableColumn<>("Login");
         cLogin.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLogin()));
-        cLogin.setPrefWidth(130);
         table.getColumns().addAll(cNom, cLogin);
+
         if (role.equals("ENSEIGNANT")) {
-            TableColumn<Utilisateur,String> cMat = new TableColumn<>("Matière(s)");
+            TableColumn<Utilisateur, String> cMat = new TableColumn<>("Matière(s)");
             cMat.setCellValueFactory(cv -> new SimpleStringProperty(cv.getValue().getMatiere()));
-            cMat.setPrefWidth(200);
             table.getColumns().add(cMat);
         }
 
-        // ── Formulaire ──────────────────────────────────────────────
+        // ── Formulaire ────────────────────────────────────────────────
         final Utilisateur[] enCours = {null};
 
         Label lblMode = new Label("Mode : ➕  Ajout");
-        lblMode.setStyle("-fx-font-size: 12; -fx-text-fill: " + Design.INFO + "; -fx-font-weight: bold;");
+        lblMode.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.INFO + ";-fx-font-weight:bold;");
 
         VBox formBox = Design.section("✏️  Ajouter / Modifier un " + role.toLowerCase());
 
         GridPane grid = new GridPane();
-        grid.setHgap(14); grid.setVgap(12); grid.setPadding(new Insets(8, 0, 0, 0));
+        grid.setHgap(14); grid.setVgap(12);
+        grid.setPadding(new Insets(10, 0, 4, 0));
 
-        TextField     tfNom    = styledField("Nom", 170);
-        TextField     tfPrenom = styledField("Prénom", 170);
-        TextField     tfLogin  = styledField("Login", 170);
+        TextField     tfNom    = styledField("Nom", 190);
+        TextField     tfPrenom = styledField("Prénom", 190);
+        TextField     tfLogin  = styledField("Login", 190);
         PasswordField pfMdp    = new PasswordField();
         pfMdp.setPromptText("Mot de passe (vide = inchangé)");
-        pfMdp.setPrefWidth(280); pfMdp.setStyle(Design.INPUT_STYLE);
+        pfMdp.setPrefWidth(310); pfMdp.setStyle(Design.INPUT_STYLE);
 
-        TextField tfMatiere = styledField("Ex: Algorithmique, Réseaux...", 310);
+        TextField tfMatiere = styledField("Ex: Algorithmique, Réseaux…", 320);
         boolean isEnseignant = role.equals("ENSEIGNANT");
 
-        grid.add(fLabel("Nom :"),          0, 0); grid.add(tfNom,    1, 0);
-        grid.add(fLabel("Prénom :"),       2, 0); grid.add(tfPrenom, 3, 0);
-        grid.add(fLabel("Login :"),        0, 1); grid.add(tfLogin,  1, 1);
-        grid.add(fLabel("Mot de passe :"), 0, 2); grid.add(pfMdp,    1, 2, 3, 1);
+        grid.add(fLabel("Nom :"),           0, 0); grid.add(tfNom,    1, 0);
+        grid.add(fLabel("Prénom :"),        2, 0); grid.add(tfPrenom, 3, 0);
+        grid.add(fLabel("Login :"),         0, 1); grid.add(tfLogin,  1, 1);
+        grid.add(fLabel("Mot de passe :"),  0, 2); grid.add(pfMdp,    1, 2, 3, 1);
         if (isEnseignant) {
             grid.add(fLabel("Matière(s) :"), 0, 3); grid.add(tfMatiere, 1, 3, 3, 1);
         }
@@ -188,7 +198,9 @@ public class AdminPanel {
         Label msgU = new Label(""); msgU.setWrapText(true);
 
         table.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel == null) return;
+            if (sel == null) {
+				return;
+			}
             enCours[0] = sel;
             tfNom.setText(sel.getNom()); tfPrenom.setText(sel.getPrenom());
             tfLogin.setText(sel.getLogin()); pfMdp.clear();
@@ -197,7 +209,10 @@ public class AdminPanel {
             lblMode.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.WARNING + ";-fx-font-weight:bold;");
         });
 
-        Button btnSave = Design.btnPrimary("💾  Enregistrer", Design.SUCCESS);
+        Button btnSave     = Design.btnPrimary("💾  Enregistrer", Design.SUCCESS);
+        Button btnAnnuler  = Design.btnSecondary("✖  Annuler");
+        Button btnSupprimer = Design.btnDanger("🗑  Supprimer");
+
         btnSave.setOnAction(e -> {
             if (tfNom.getText().isEmpty() || tfPrenom.getText().isEmpty() || tfLogin.getText().isEmpty()) {
                 setMsg(msgU, "⚠️  Nom, prénom et login sont obligatoires.", Design.WARNING); return;
@@ -208,7 +223,9 @@ public class AdminPanel {
                     enCours[0].setPrenom(tfPrenom.getText().trim());
                     enCours[0].setLogin(tfLogin.getText().trim());
                     enCours[0].setMotDePasse(pfMdp.getText().trim());
-                    if (isEnseignant) enCours[0].setMatiere(tfMatiere.getText().trim());
+                    if (isEnseignant) {
+						enCours[0].setMatiere(tfMatiere.getText().trim());
+					}
                     utilisateurDAO.modifier(enCours[0]);
                     setMsg(msgU, "✅  Utilisateur modifié.", Design.SUCCESS);
                 } else {
@@ -218,7 +235,9 @@ public class AdminPanel {
                     u.setNom(tfNom.getText().trim()); u.setPrenom(tfPrenom.getText().trim());
                     u.setLogin(tfLogin.getText().trim()); u.setMotDePasse(pfMdp.getText().trim());
                     u.setRole(role);
-                    if (isEnseignant) u.setMatiere(tfMatiere.getText().trim());
+                    if (isEnseignant) {
+						u.setMatiere(tfMatiere.getText().trim());
+					}
                     utilisateurDAO.ajouter(u);
                     setMsg(msgU, "✅  Utilisateur ajouté.", Design.SUCCESS);
                 }
@@ -230,7 +249,6 @@ public class AdminPanel {
             } catch (Exception ex) { setMsg(msgU, "❌  " + ex.getMessage(), Design.DANGER); }
         });
 
-        Button btnAnnuler = Design.btnSecondary("✖  Annuler");
         btnAnnuler.setOnAction(e -> {
             viderFormUser(tfNom, tfPrenom, tfLogin, pfMdp); enCours[0] = null;
             tfMatiere.clear(); table.getSelectionModel().clearSelection();
@@ -239,7 +257,6 @@ public class AdminPanel {
             msgU.setText("");
         });
 
-        Button btnSupprimer = Design.btnDanger("🗑  Supprimer");
         btnSupprimer.setOnAction(e -> {
             Utilisateur sel = table.getSelectionModel().getSelectedItem();
             if (sel == null) { setMsg(msgU, "⚠️  Sélectionnez un utilisateur dans le tableau.", Design.WARNING); return; }
@@ -254,8 +271,12 @@ public class AdminPanel {
             }
         });
 
-        formBox.getChildren().addAll(lblMode, grid, new HBox(10, btnSave, btnAnnuler, btnSupprimer), msgU);
-        panel.getChildren().addAll(titre, table, formBox);
+        HBox btnBar = new HBox(10, btnSave, btnAnnuler, btnSupprimer);
+        btnBar.setAlignment(Pos.CENTER_LEFT);
+
+        formBox.getChildren().addAll(lblMode, grid, btnBar, msgU);
+        panel.getChildren().addAll(table, formBox);
+
         ScrollPane scroll = new ScrollPane(panel);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");
@@ -266,23 +287,28 @@ public class AdminPanel {
     //  GESTION BÂTIMENTS
     // ════════════════════════════════════════════════════════════════
     private ScrollPane creerGestionBatiments() {
-        VBox panel = new VBox(18);
+        VBox panel = new VBox(22);
         panel.setPadding(new Insets(28));
         panel.setStyle("-fx-background-color: " + Design.BG_LIGHT + ";");
+
         Label titre = Design.pageTitle("🏗  Gestion des Bâtiments");
+        Label desc  = Design.muted("Cliquez sur une ligne pour modifier un bâtiment. La suppression entraîne aussi la suppression de ses salles.");
+        panel.getChildren().addAll(titre, desc);
 
         ObservableList<Batiment> items = FXCollections.observableArrayList(batimentDAO.obtenirTous());
         TableView<Batiment> table = new TableView<>(items);
         table.setPrefHeight(220);
-        table.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #e8ecf5;");
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: " + Design.BORDER + ";");
         table.setPlaceholder(new Label("Aucun bâtiment enregistré."));
 
-        TableColumn<Batiment,String>  cNom = new TableColumn<>("Nom");
-        cNom.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNom())); cNom.setPrefWidth(140);
-        TableColumn<Batiment,String>  cLoc = new TableColumn<>("Localisation");
-        cLoc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLocalisation())); cLoc.setPrefWidth(220);
-        TableColumn<Batiment,Integer> cEtg = new TableColumn<>("Nb étages");
-        cEtg.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getNombreEtages())); cEtg.setPrefWidth(90);
+        TableColumn<Batiment, String>  cNom = new TableColumn<>("Nom");
+        cNom.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNom()));
+        TableColumn<Batiment, String>  cLoc = new TableColumn<>("Localisation");
+        cLoc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLocalisation()));
+        TableColumn<Batiment, Integer> cEtg = new TableColumn<>("Nb étages");
+        cEtg.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getNombreEtages()));
+        cEtg.setMaxWidth(90);
         table.getColumns().addAll(cNom, cLoc, cEtg);
 
         final Batiment[] enCours = {null};
@@ -291,22 +317,26 @@ public class AdminPanel {
 
         VBox formBox = Design.section("✏️  Ajouter / Modifier un bâtiment");
         GridPane grid = new GridPane();
-        grid.setHgap(14); grid.setVgap(12); grid.setPadding(new Insets(8, 0, 0, 0));
-        TextField tfNom = styledField("Ex: UFR-SET", 220);
-        TextField tfLoc = styledField("Ex: Campus principal", 220);
+        grid.setHgap(14); grid.setVgap(12);
+        grid.setPadding(new Insets(10, 0, 4, 0));
+
+        TextField tfNom = styledField("Ex: UFR-SET", 240);
+        TextField tfLoc = styledField("Ex: Campus principal", 240);
         Spinner<Integer> spEtg = new Spinner<>(0, 30, 1);
         spEtg.setPrefWidth(90); spEtg.setEditable(true);
         Label noteEtg = new Label("(0 = rez-de-chaussée uniquement)");
         noteEtg.setStyle("-fx-font-size:11;-fx-text-fill:" + Design.TEXT_MUTED + ";");
 
-        grid.add(fLabel("Nom du bâtiment :"), 0, 0); grid.add(tfNom, 1, 0);
-        grid.add(fLabel("Localisation :"),     0, 1); grid.add(tfLoc, 1, 1);
-        grid.add(fLabel("Nombre d'étages :"),  0, 2); grid.add(new HBox(8, spEtg, noteEtg), 1, 2);
+        grid.add(fLabel("Nom du bâtiment :"),  0, 0); grid.add(tfNom, 1, 0);
+        grid.add(fLabel("Localisation :"),      0, 1); grid.add(tfLoc, 1, 1);
+        grid.add(fLabel("Nombre d'étages :"),   0, 2); grid.add(new HBox(8, spEtg, noteEtg), 1, 2);
 
         Label msg = new Label(""); msg.setWrapText(true);
 
         table.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel == null) return;
+            if (sel == null) {
+				return;
+			}
             enCours[0] = sel;
             tfNom.setText(sel.getNom()); tfLoc.setText(sel.getLocalisation());
             spEtg.getValueFactory().setValue(sel.getNombreEtages());
@@ -314,7 +344,10 @@ public class AdminPanel {
             lblMode.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.WARNING + ";-fx-font-weight:bold;");
         });
 
-        Button btnSave = Design.btnPrimary("💾  Enregistrer", Design.SUCCESS);
+        Button btnSave    = Design.btnPrimary("💾  Enregistrer", Design.SUCCESS);
+        Button btnAnnuler = Design.btnSecondary("✖  Annuler");
+        Button btnSuppr   = Design.btnDanger("🗑  Supprimer");
+
         btnSave.setOnAction(e -> {
             if (tfNom.getText().isEmpty()) { setMsg(msg, "⚠️  Le nom est obligatoire.", Design.WARNING); return; }
             try {
@@ -329,13 +362,13 @@ public class AdminPanel {
                     setMsg(msg, "✅  Bâtiment ajouté.", Design.SUCCESS);
                 }
                 items.setAll(batimentDAO.obtenirTous());
-                tfNom.clear(); tfLoc.clear(); enCours[0] = null; table.getSelectionModel().clearSelection();
+                tfNom.clear(); tfLoc.clear(); enCours[0] = null;
+                table.getSelectionModel().clearSelection();
                 lblMode.setText("Mode : ➕  Ajout");
                 lblMode.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.INFO + ";-fx-font-weight:bold;");
             } catch (Exception ex) { setMsg(msg, "❌  " + ex.getMessage(), Design.DANGER); }
         });
 
-        Button btnSuppr = Design.btnDanger("🗑  Supprimer");
         btnSuppr.setOnAction(e -> {
             Batiment sel = table.getSelectionModel().getSelectedItem();
             if (sel == null) { setMsg(msg, "⚠️  Sélectionnez un bâtiment.", Design.WARNING); return; }
@@ -351,16 +384,20 @@ public class AdminPanel {
             }
         });
 
-        Button btnAnnuler = Design.btnSecondary("✖  Annuler");
         btnAnnuler.setOnAction(e -> {
-            tfNom.clear(); tfLoc.clear(); enCours[0] = null; table.getSelectionModel().clearSelection();
+            tfNom.clear(); tfLoc.clear(); enCours[0] = null;
+            table.getSelectionModel().clearSelection();
             lblMode.setText("Mode : ➕  Ajout");
             lblMode.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.INFO + ";-fx-font-weight:bold;");
             msg.setText("");
         });
 
-        formBox.getChildren().addAll(lblMode, grid, new HBox(10, btnSave, btnAnnuler, btnSuppr), msg);
-        panel.getChildren().addAll(titre, table, formBox);
+        HBox btnBar = new HBox(10, btnSave, btnAnnuler, btnSuppr);
+        btnBar.setAlignment(Pos.CENTER_LEFT);
+
+        formBox.getChildren().addAll(lblMode, grid, btnBar, msg);
+        panel.getChildren().addAll(table, formBox);
+
         ScrollPane scroll = new ScrollPane(panel);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");
@@ -371,42 +408,57 @@ public class AdminPanel {
     //  GESTION SALLES
     // ════════════════════════════════════════════════════════════════
     private ScrollPane creerGestionSalles() {
-        VBox panel = new VBox(18);
+        VBox panel = new VBox(22);
         panel.setPadding(new Insets(28));
         panel.setStyle("-fx-background-color: " + Design.BG_LIGHT + ";");
-        Label titre = Design.pageTitle("🏫  Gestion des Salles");
 
-        // Filtre bâtiment
-        HBox filtreBox = new HBox(10);
+        Label titre = Design.pageTitle("🏫  Gestion des Salles");
+        Label desc  = Design.muted("Cliquez sur une salle pour la modifier. Filtrez par bâtiment pour affiner la liste.");
+        panel.getChildren().addAll(titre, desc);
+
+        // ── Filtre bâtiment ───────────────────────────────────────────
+        HBox filtreBox = new HBox(12);
         filtreBox.setAlignment(Pos.CENTER_LEFT);
-        filtreBox.setPadding(new Insets(10, 14, 10, 14));
+        filtreBox.setPadding(new Insets(12, 16, 12, 16));
         filtreBox.setStyle(Design.CARD_STYLE);
-        Label lblFil = fLabel("Filtrer par bâtiment :");
+
         ComboBox<String> cbFiltreBat = new ComboBox<>();
         cbFiltreBat.getItems().add("Tous les bâtiments");
         cbFiltreBat.getItems().addAll(batimentDAO.obtenirNoms());
         cbFiltreBat.setValue("Tous les bâtiments");
-        cbFiltreBat.setPrefWidth(240);
-        filtreBox.getChildren().addAll(lblFil, cbFiltreBat);
+        cbFiltreBat.setPrefWidth(260);
+
+        filtreBox.getChildren().addAll(fLabel("Bâtiment :"), cbFiltreBat);
+        panel.getChildren().add(filtreBox);
 
         ObservableList<Salle> items = FXCollections.observableArrayList(salleDAO.obtenirTous());
         TableView<Salle> table = new TableView<>(items);
-        table.setPrefHeight(220);
-        table.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #e8ecf5;");
+        table.setPrefHeight(230);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: " + Design.BORDER + ";");
         table.setPlaceholder(new Label("Aucune salle enregistrée."));
 
-        TableColumn<Salle,String>  cNum  = new TableColumn<>("N°");       cNum.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumero())); cNum.setPrefWidth(55);
-        TableColumn<Salle,String>  cBat  = new TableColumn<>("Bâtiment"); cBat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBatiment())); cBat.setPrefWidth(120);
-        TableColumn<Salle,String>  cEtg  = new TableColumn<>("Étage");    cEtg.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEtage())); cEtg.setPrefWidth(90);
-        TableColumn<Salle,Integer> cCap  = new TableColumn<>("Cap.");      cCap.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getCapacite())); cCap.setPrefWidth(55);
-        TableColumn<Salle,String>  cType = new TableColumn<>("Type");     cType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getType())); cType.setPrefWidth(60);
-        TableColumn<Salle,String>  cEq   = new TableColumn<>("Équipements"); cEq.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEquipementsStr())); cEq.setPrefWidth(160);
+        TableColumn<Salle, String>  cNum  = new TableColumn<>("N°");
+        cNum.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumero())); cNum.setMaxWidth(65);
+        TableColumn<Salle, String>  cBat  = new TableColumn<>("Bâtiment");
+        cBat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBatiment()));
+        TableColumn<Salle, String>  cEtg  = new TableColumn<>("Étage");
+        cEtg.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEtage()));
+        TableColumn<Salle, Integer> cCap  = new TableColumn<>("Cap.");
+        cCap.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getCapacite())); cCap.setMaxWidth(65);
+        TableColumn<Salle, String>  cType = new TableColumn<>("Type");
+        cType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getType())); cType.setMaxWidth(65);
+        TableColumn<Salle, String>  cEq   = new TableColumn<>("Équipements");
+        cEq.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEquipementsStr()));
         table.getColumns().addAll(cNum, cBat, cEtg, cCap, cType, cEq);
 
         cbFiltreBat.setOnAction(e -> {
             String v = cbFiltreBat.getValue();
-            if (v == null || v.equals("Tous les bâtiments")) items.setAll(salleDAO.obtenirTous());
-            else items.setAll(salleDAO.obtenirParBatiment(v));
+            if (v == null || v.equals("Tous les bâtiments")) {
+				items.setAll(salleDAO.obtenirTous());
+			} else {
+				items.setAll(salleDAO.obtenirParBatiment(v));
+			}
         });
 
         final Salle[] enCours = {null};
@@ -415,50 +467,65 @@ public class AdminPanel {
 
         VBox formBox = Design.section("✏️  Ajouter / Modifier une salle");
         GridPane grid = new GridPane();
-        grid.setHgap(14); grid.setVgap(12); grid.setPadding(new Insets(8, 0, 0, 0));
+        grid.setHgap(14); grid.setVgap(12);
+        grid.setPadding(new Insets(10, 0, 4, 0));
 
         ComboBox<String> cbBat = new ComboBox<>();
         cbBat.getItems().addAll(batimentDAO.obtenirNoms());
-        cbBat.setPromptText("Sélectionner un bâtiment"); cbBat.setPrefWidth(240);
+        cbBat.setPromptText("Sélectionner un bâtiment"); cbBat.setPrefWidth(260);
 
-        TextField tfNum = styledField("Ex: 1 (ou S01, Lab-3...)", 170);
-        Label lblNumInfo = new Label(""); lblNumInfo.setStyle("-fx-font-size:11;-fx-text-fill:" + Design.TEXT_MUTED + ";"); lblNumInfo.setWrapText(true);
+        TextField tfNum = styledField("Ex: 1 (ou S01, Lab-3…)", 190);
+        Label lblNumInfo = new Label("");
+        lblNumInfo.setStyle("-fx-font-size:11;-fx-text-fill:" + Design.TEXT_MUTED + ";");
+        lblNumInfo.setWrapText(true);
 
         ComboBox<String> cbEtage = new ComboBox<>();
-        cbEtage.setPromptText("Sélectionner d'abord un bâtiment"); cbEtage.setPrefWidth(240);
+        cbEtage.setPromptText("Sélectionner d'abord un bâtiment"); cbEtage.setPrefWidth(260);
 
         cbBat.setOnAction(e -> {
             cbEtage.getItems().clear();
             String nomBat = cbBat.getValue();
-            if (nomBat == null) return;
+            if (nomBat == null) {
+				return;
+			}
             Batiment bat = batimentDAO.obtenirParNom(nomBat);
-            if (bat == null) return;
-            int nbEtages = bat.getNombreEtages();
+            if (bat == null) {
+				return;
+			}
             cbEtage.getItems().add("Rez-de-chaussée");
-            for (int i = 1; i <= nbEtages; i++) cbEtage.getItems().add(i + (i == 1 ? "er étage" : "e étage"));
+            for (int i = 1; i <= bat.getNombreEtages(); i++) {
+				cbEtage.getItems().add(i + (i == 1 ? "er étage" : "e étage"));
+			}
             cbEtage.setValue(cbEtage.getItems().get(0));
             List<String> existants = salleDAO.obtenirNumerosPourBatiment(nomBat);
-            lblNumInfo.setText(existants.isEmpty() ? "Aucune salle dans ce bâtiment." : "Numéros utilisés : " + String.join(", ", existants));
+            lblNumInfo.setText(existants.isEmpty()
+                ? "Aucune salle dans ce bâtiment."
+                : "Numéros utilisés : " + String.join(", ", existants));
         });
 
-        TextField tfCap = styledField("Ex: 50", 80);
+        TextField tfCap = styledField("Ex: 50", 90);
         ComboBox<String> cbType = new ComboBox<>();
         cbType.getItems().addAll("TD", "TP", "Amphi"); cbType.setPromptText("Type"); cbType.setPrefWidth(130);
+
         CheckBox chkV = new CheckBox("📽  Vidéoprojecteur");
         CheckBox chkT = new CheckBox("🖥  Tableau interactif");
         CheckBox chkC = new CheckBox("❄  Climatisation");
+        HBox equipBox = new HBox(18, chkV, chkT, chkC);
+        equipBox.setAlignment(Pos.CENTER_LEFT);
 
-        grid.add(fLabel("Bâtiment :"),    0, 0); grid.add(cbBat,   1, 0, 2, 1);
-        grid.add(fLabel("N° salle :"),    0, 1); grid.add(tfNum,   1, 1); grid.add(lblNumInfo, 2, 1);
-        grid.add(fLabel("Étage :"),       0, 2); grid.add(cbEtage, 1, 2, 2, 1);
-        grid.add(fLabel("Capacité :"),    0, 3); grid.add(tfCap,   1, 3);
-        grid.add(fLabel("Type :"),        0, 4); grid.add(cbType,  1, 4);
-        grid.add(fLabel("Équipements :"), 0, 5); grid.add(new HBox(14, chkV, chkT, chkC), 1, 5, 2, 1);
+        grid.add(fLabel("Bâtiment :"),     0, 0); grid.add(cbBat,   1, 0, 2, 1);
+        grid.add(fLabel("N° salle :"),     0, 1); grid.add(tfNum,   1, 1); grid.add(lblNumInfo, 2, 1);
+        grid.add(fLabel("Étage :"),        0, 2); grid.add(cbEtage, 1, 2, 2, 1);
+        grid.add(fLabel("Capacité :"),     0, 3); grid.add(tfCap,   1, 3);
+        grid.add(fLabel("Type :"),         0, 4); grid.add(cbType,  1, 4);
+        grid.add(fLabel("Équipements :"),  0, 5); grid.add(equipBox, 1, 5, 2, 1);
 
         Label msg = new Label(""); msg.setWrapText(true);
 
         table.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel == null) return;
+            if (sel == null) {
+				return;
+			}
             enCours[0] = sel;
             cbBat.setValue(sel.getBatiment());
             cbBat.fireEvent(new javafx.event.ActionEvent());
@@ -469,7 +536,10 @@ public class AdminPanel {
             lblMode.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.WARNING + ";-fx-font-weight:bold;");
         });
 
-        Button btnSave = Design.btnPrimary("💾  Enregistrer", Design.SUCCESS);
+        Button btnSave    = Design.btnPrimary("💾  Enregistrer", Design.SUCCESS);
+        Button btnAnnuler = Design.btnSecondary("✖  Annuler");
+        Button btnSuppr   = Design.btnDanger("🗑  Supprimer");
+
         btnSave.setOnAction(e -> {
             if (cbBat.getValue() == null || tfNum.getText().isEmpty() || cbEtage.getValue() == null || cbType.getValue() == null) {
                 setMsg(msg, "⚠️  Bâtiment, numéro, étage et type sont obligatoires.", Design.WARNING); return;
@@ -487,7 +557,9 @@ public class AdminPanel {
                 if (enCours[0] != null) { salleDAO.modifier(s); setMsg(msg, "✅  Salle modifiée.", Design.SUCCESS); }
                 else                    { salleDAO.ajouter(s);   setMsg(msg, "✅  Salle ajoutée.", Design.SUCCESS); }
                 String fil = cbFiltreBat.getValue();
-                items.setAll(fil == null || fil.equals("Tous les bâtiments") ? salleDAO.obtenirTous() : salleDAO.obtenirParBatiment(fil));
+                items.setAll(fil == null || fil.equals("Tous les bâtiments")
+                    ? salleDAO.obtenirTous() : salleDAO.obtenirParBatiment(fil));
+                // Rafraîchir la liste du filtre
                 String curFil = cbFiltreBat.getValue();
                 cbFiltreBat.getItems().clear();
                 cbFiltreBat.getItems().add("Tous les bâtiments");
@@ -500,7 +572,6 @@ public class AdminPanel {
             } catch (Exception ex) { setMsg(msg, "❌  " + ex.getMessage(), Design.DANGER); }
         });
 
-        Button btnSuppr = Design.btnDanger("🗑  Supprimer");
         btnSuppr.setOnAction(e -> {
             Salle sel = table.getSelectionModel().getSelectedItem();
             if (sel == null) { setMsg(msg, "⚠️  Sélectionnez une salle.", Design.WARNING); return; }
@@ -510,13 +581,13 @@ public class AdminPanel {
             if (r.isPresent() && r.get() == ButtonType.OK) {
                 salleDAO.supprimer(sel.getId());
                 String fil = cbFiltreBat.getValue();
-                items.setAll(fil == null || fil.equals("Tous les bâtiments") ? salleDAO.obtenirTous() : salleDAO.obtenirParBatiment(fil));
+                items.setAll(fil == null || fil.equals("Tous les bâtiments")
+                    ? salleDAO.obtenirTous() : salleDAO.obtenirParBatiment(fil));
                 enCours[0] = null;
                 setMsg(msg, "✅  Salle supprimée.", Design.SUCCESS);
             }
         });
 
-        Button btnAnnuler = Design.btnSecondary("✖  Annuler");
         btnAnnuler.setOnAction(e -> {
             viderFormSalle(cbBat, tfNum, cbEtage, tfCap, cbType, chkV, chkT, chkC, lblNumInfo);
             enCours[0] = null; table.getSelectionModel().clearSelection();
@@ -525,18 +596,23 @@ public class AdminPanel {
             msg.setText("");
         });
 
-        formBox.getChildren().addAll(lblMode, grid, new HBox(10, btnSave, btnAnnuler, btnSuppr), msg);
-        panel.getChildren().addAll(titre, filtreBox, table, formBox);
+        HBox btnBar = new HBox(10, btnSave, btnAnnuler, btnSuppr);
+        btnBar.setAlignment(Pos.CENTER_LEFT);
+
+        formBox.getChildren().addAll(lblMode, grid, btnBar, msg);
+        panel.getChildren().addAll(table, formBox);
+
         ScrollPane scroll = new ScrollPane(panel);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");
         return scroll;
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────────
     private void setMsg(Label lbl, String text, String color) {
         lbl.setText(text);
-        lbl.setStyle("-fx-font-size:12;-fx-text-fill:" + color + ";-fx-font-weight:bold;-fx-padding:6 10;-fx-background-color:derive(" + color + ",85%);-fx-background-radius:6;");
+        lbl.setStyle("-fx-font-size:12;-fx-text-fill:" + color + ";-fx-font-weight:bold;" +
+            "-fx-padding:6 10;-fx-background-color:derive(" + color + ",85%);-fx-background-radius:6;");
     }
 
     private TextField styledField(String prompt, double w) {
@@ -559,7 +635,8 @@ public class AdminPanel {
                                  CheckBox v, CheckBox t, CheckBox c, Label info) {
         bat.setValue(null); num.clear(); etg.getItems().clear();
         etg.setPromptText("Sélectionner d'abord un bâtiment");
-        cap.clear(); type.setValue(null); v.setSelected(false); t.setSelected(false); c.setSelected(false);
+        cap.clear(); type.setValue(null);
+        v.setSelected(false); t.setSelected(false); c.setSelected(false);
         info.setText("");
     }
 

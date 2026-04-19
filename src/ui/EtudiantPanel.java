@@ -50,7 +50,9 @@ public class EtudiantPanel {
     public EtudiantPanel(Utilisateur utilisateur, UnivSchedulerApp app) {
         this.utilisateur = utilisateur;
         this.app = app;
-        if (utilisateur.hasClasse()) this.classeEtudiant = utilisateur.getClasse();
+        if (utilisateur.hasClasse()) {
+			this.classeEtudiant = utilisateur.getClasse();
+		}
     }
 
     public BorderPane createPanel() {
@@ -165,7 +167,9 @@ public class EtudiantPanel {
             lChoix.setStyle("-fx-font-size:14;-fx-font-weight:bold;-fx-text-fill:" + Design.TEXT_DARK + ";");
             ComboBox<String> cbClasse = new ComboBox<>();
             List<String> classes = classeDAO.obtenirNomsClasses();
-            if (classes.isEmpty()) classes = edtDAO.obtenirToutesLesClasses();
+            if (classes.isEmpty()) {
+				classes = edtDAO.obtenirToutesLesClasses();
+			}
             cbClasse.getItems().addAll(classes);
             cbClasse.setPromptText("Choisir ma classe..."); cbClasse.setPrefWidth(260);
             Button btnVal = Design.btnPrimary("✅  Valider", Design.ETU_ACCENT);
@@ -303,10 +307,18 @@ public class EtudiantPanel {
             LocalDateTime debut = LocalDateTime.now().withHour(spH.getValue()).withMinute(spMin.getValue()).withSecond(0);
             List<Salle> dispo = salleDAO.obtenirSallesDisponibles(debut, spDur.getValue());
             dispo = dispo.stream().filter(s -> s.getCapacite() >= spCap.getValue()).collect(Collectors.toList());
-            if (!cbType.getValue().equals("Tous")) dispo = dispo.stream().filter(s->s.getType().equals(cbType.getValue())).collect(Collectors.toList());
-            if (chkV.isSelected()) dispo = dispo.stream().filter(Salle::isVideoprojecteur).collect(Collectors.toList());
-            if (chkT.isSelected()) dispo = dispo.stream().filter(Salle::isTableauInteractif).collect(Collectors.toList());
-            if (chkC.isSelected()) dispo = dispo.stream().filter(Salle::isClimatisation).collect(Collectors.toList());
+            if (!cbType.getValue().equals("Tous")) {
+				dispo = dispo.stream().filter(s->s.getType().equals(cbType.getValue())).collect(Collectors.toList());
+			}
+            if (chkV.isSelected()) {
+				dispo = dispo.stream().filter(Salle::isVideoprojecteur).collect(Collectors.toList());
+			}
+            if (chkT.isSelected()) {
+				dispo = dispo.stream().filter(Salle::isTableauInteractif).collect(Collectors.toList());
+			}
+            if (chkC.isSelected()) {
+				dispo = dispo.stream().filter(Salle::isClimatisation).collect(Collectors.toList());
+			}
             table.setItems(FXCollections.observableArrayList(dispo));
             lblRes.setText(dispo.isEmpty() ? "❌  Aucune salle disponible pour ces critères." : "✅  " + dispo.size() + " salle(s) disponible(s).");
             lblRes.setStyle(dispo.isEmpty() ? "-fx-text-fill:"+Design.DANGER+";" : "-fx-text-fill:"+Design.SUCCESS+";");
@@ -316,7 +328,9 @@ public class EtudiantPanel {
         btnChercher.setOnAction(e -> chercher.run());
 
         table.getSelectionModel().selectedItemProperty().addListener((obs,old,sel) -> {
-            if (sel==null) return;
+            if (sel==null) {
+				return;
+			}
             Tooltip.install(table, new Tooltip("Salle "+sel.getNumero()+" — "+sel.getBatiment()+"\nCap: "+sel.getCapacite()+" | Type: "+sel.getType()+"\n"+sel.getEquipementsStr()));
         });
 

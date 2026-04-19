@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -28,13 +29,14 @@ import models.Salle;
 import models.Utilisateur;
 
 /**
- * Panel de demande de réservation de salle (enseignant ET étudiant).
- * Le message est enregistré en base et apparaît dans la boîte de réception du gestionnaire.
+ * Panel de demande de réservation de salle — redesigné.
+ * Utilisé par les enseignants ET les étudiants.
+ * Logique métier inchangée.
  */
 public class ReservationPanel {
 
-    private SalleDAO   salleDAO  = new SalleDAO();
-    private MessageDAO msgDAO    = new MessageDAO();
+    private SalleDAO    salleDAO = new SalleDAO();
+    private MessageDAO  msgDAO   = new MessageDAO();
     private Utilisateur utilisateur;
 
     public ReservationPanel(Utilisateur utilisateur) {
@@ -42,73 +44,103 @@ public class ReservationPanel {
     }
 
     public ScrollPane createPanel() {
-        VBox panel = new VBox(20);
-        panel.setPadding(new Insets(25));
+        VBox panel = new VBox(22);
+        panel.setPadding(new Insets(28));
+        panel.setStyle("-fx-background-color: " + Design.BG_LIGHT + ";");
 
-        Label titre = new Label("📨 Demander une Réservation de Salle");
-        titre.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
+        Label titre = Design.pageTitle("📨  Demander une Réservation de Salle");
+        Label desc  = Design.muted("Sélectionnez une salle, remplissez le formulaire et envoyez votre demande. Le gestionnaire la recevra dans sa boîte de réception.");
+        panel.getChildren().addAll(titre, desc);
 
-        Label desc = new Label("Sélectionnez une salle et remplissez le formulaire. Le gestionnaire recevra votre demande dans sa boîte de réception.");
-        desc.setStyle("-fx-font-size: 12; -fx-text-fill: #555;"); desc.setWrapText(true);
-
-        // Tableau des salles
-        Label lblSalles = new Label("🏫 Salles disponibles (cliquez pour pré-remplir) :");
-        lblSalles.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
+        // ── Tableau des salles ────────────────────────────────────────
+        VBox sallesSection = Design.section("🏫  Salles disponibles — cliquez pour pré-sélectionner");
 
         List<Salle> salles = salleDAO.obtenirTous();
         TableView<Salle> tableSalles = new TableView<>(FXCollections.observableArrayList(salles));
-        tableSalles.setPrefHeight(185);
+        tableSalles.setPrefHeight(200);
+        tableSalles.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableSalles.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: " + Design.BORDER + ";");
+        tableSalles.setPlaceholder(new Label("Aucune salle enregistrée."));
 
-        TableColumn<Salle,String>  cNum  = new TableColumn<>("Numéro");  cNum.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumero())); cNum.setPrefWidth(80);
-        TableColumn<Salle,String>  cBat  = new TableColumn<>("Bâtiment"); cBat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBatiment())); cBat.setPrefWidth(120);
-        TableColumn<Salle,Integer> cCap  = new TableColumn<>("Capacité"); cCap.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getCapacite())); cCap.setPrefWidth(70);
-        TableColumn<Salle,String>  cType = new TableColumn<>("Type");     cType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getType())); cType.setPrefWidth(70);
-        TableColumn<Salle,String>  cEq   = new TableColumn<>("Équipements"); cEq.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEquipementsStr())); cEq.setPrefWidth(150);
+        TableColumn<Salle, String>  cNum  = new TableColumn<>("Numéro");
+        cNum.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumero()));
+        TableColumn<Salle, String>  cBat  = new TableColumn<>("Bâtiment");
+        cBat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBatiment()));
+        TableColumn<Salle, Integer> cCap  = new TableColumn<>("Capacité");
+        cCap.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getCapacite())); cCap.setMaxWidth(80);
+        TableColumn<Salle, String>  cType = new TableColumn<>("Type");
+        cType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getType())); cType.setMaxWidth(75);
+        TableColumn<Salle, String>  cEq   = new TableColumn<>("Équipements");
+        cEq.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEquipementsStr()));
         tableSalles.getColumns().addAll(cNum, cBat, cCap, cType, cEq);
 
-        // Formulaire
-        Label lblForm = new Label("📝 Formulaire de demande :");
-        lblForm.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
+        sallesSection.getChildren().add(tableSalles);
+        panel.getChildren().add(sallesSection);
 
-        GridPane grid = new GridPane(); grid.setHgap(12); grid.setVgap(12);
-        grid.setPadding(new Insets(14)); grid.setStyle("-fx-border-color:#ddd;-fx-background-color:white;-fx-border-radius:6;");
+        // ── Formulaire de demande ────────────────────────────────────
+        VBox formBox = Design.section("📝  Formulaire de demande");
 
-        TextField  tfSalle  = new TextField(); tfSalle.setPromptText("Cliquez sur une salle ci-dessus ou saisissez"); tfSalle.setPrefWidth(300);
-        TextField  tfMotif  = new TextField(); tfMotif.setPromptText("Ex: Soutenance, Réunion, TD supplémentaire..."); tfMotif.setPrefWidth(300);
-        DatePicker dp       = new DatePicker(LocalDate.now().plusDays(1));
-        Spinner<Integer> spH = new Spinner<>(7,22,8);  spH.setPrefWidth(80);
-        Spinner<Integer> spM = new Spinner<>(0,59,0);  spM.setPrefWidth(80);
-        Spinner<Integer> spD = new Spinner<>(30,480,90); spD.setPrefWidth(90);
-        TextArea taComment  = new TextArea(); taComment.setPromptText("Informations complémentaires, effectif..."); taComment.setPrefHeight(70); taComment.setPrefWidth(300);
+        GridPane grid = new GridPane();
+        grid.setHgap(14); grid.setVgap(12);
+        grid.setPadding(new Insets(10, 0, 4, 0));
+
+        // Indicateur de salle sélectionnée
+        Label lblSalleChoisie = new Label("Aucune salle sélectionnée — cliquez sur une ligne ci-dessus.");
+        lblSalleChoisie.setStyle(
+            "-fx-font-size:12;-fx-text-fill:" + Design.TEXT_MUTED + ";" +
+            "-fx-padding:8 12;-fx-background-color:#f8f9fe;-fx-background-radius:6;"
+        );
+
+        TextField  tfSalle  = new TextField();
+        tfSalle.setPromptText("Ou saisissez directement le numéro de salle…");
+        tfSalle.setPrefWidth(340);
+        tfSalle.setStyle(Design.INPUT_STYLE);
 
         ComboBox<String> cbType = new ComboBox<>();
         cbType.getItems().addAll("Réservation ponctuelle", "Cours supplémentaire", "Soutenance / Examen", "Réunion pédagogique", "Autre");
-        cbType.setValue("Réservation ponctuelle");
+        cbType.setValue("Réservation ponctuelle"); cbType.setPrefWidth(280);
 
-        grid.add(new Label("Salle souhaitée :"),  0,0); grid.add(tfSalle,  1,0);
-        grid.add(new Label("Type de demande :"),  0,1); grid.add(cbType,   1,1);
-        grid.add(new Label("Motif précis :"),      0,2); grid.add(tfMotif,  1,2);
-        grid.add(new Label("Date :"),              0,3); grid.add(dp,       1,3);
-        grid.add(new Label("Heure de début :"),    0,4); grid.add(new HBox(6,new Label("h"),spH,new Label("min"),spM),1,4);
-        grid.add(new Label("Durée (min) :"),       0,5); grid.add(spD,      1,5);
-        grid.add(new Label("Commentaire :"),       0,6); grid.add(taComment,1,6);
+        TextField  tfMotif  = sf("Ex: Soutenance, Réunion, TD supplémentaire…", 340);
+        DatePicker dp       = new DatePicker(LocalDate.now().plusDays(1));
+
+        Spinner<Integer> spH = new Spinner<>(7, 22, 8);  spH.setPrefWidth(82); spH.setEditable(true);
+        Spinner<Integer> spM = new Spinner<>(0, 59, 0);  spM.setPrefWidth(82); spM.setEditable(true);
+        Spinner<Integer> spD = new Spinner<>(30, 480, 90); spD.setPrefWidth(90); spD.setEditable(true);
+
+        HBox heureBox = new HBox(6, spH, new Label("h"), spM, new Label("min"));
+        heureBox.setAlignment(Pos.CENTER_LEFT);
+
+        TextArea taComment = new TextArea();
+        taComment.setPromptText("Informations complémentaires, effectif prévu…");
+        taComment.setPrefHeight(80); taComment.setPrefWidth(340);
+        taComment.setWrapText(true); taComment.setStyle(Design.INPUT_STYLE);
+
+        grid.add(fl("Salle souhaitée :"),  0, 0); grid.add(tfSalle,   1, 0);
+        grid.add(fl("Type de demande :"),  0, 1); grid.add(cbType,    1, 1);
+        grid.add(fl("Motif précis :"),     0, 2); grid.add(tfMotif,   1, 2);
+        grid.add(fl("Date :"),             0, 3); grid.add(dp,        1, 3);
+        grid.add(fl("Heure de début :"),   0, 4); grid.add(heureBox,  1, 4);
+        grid.add(fl("Durée (min) :"),      0, 5); grid.add(spD,       1, 5);
+        grid.add(fl("Commentaire :"),      0, 6); grid.add(taComment, 1, 6);
 
         // Pré-remplir quand on clique dans le tableau
-        tableSalles.getSelectionModel().selectedItemProperty().addListener((obs,old,sel) -> {
+        tableSalles.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) {
-				tfSalle.setText(sel.getNumero() + " — " + sel.getBatiment() + " (Cap: " + sel.getCapacite() + ")");
-			}
+                tfSalle.setText(sel.getNumero() + " — " + sel.getBatiment() + " (Cap: " + sel.getCapacite() + ")");
+                lblSalleChoisie.setText("🏫  Salle sélectionnée : " + sel.getNumero() + " — " + sel.getBatiment() + " (Capacité : " + sel.getCapacite() + ")");
+                lblSalleChoisie.setStyle(
+                    "-fx-font-size:12;-fx-text-fill:" + Design.SUCCESS + ";-fx-font-weight:bold;" +
+                    "-fx-padding:8 12;-fx-background-color:#e8faf5;-fx-background-radius:6;"
+                );
+            }
         });
 
-        Label msgRes = new Label(""); msgRes.setStyle("-fx-font-size: 12;"); msgRes.setWrapText(true);
+        Label msgRes = new Label(""); msgRes.setWrapText(true);
 
-        Button btnEnvoyer = new Button("📤 Envoyer la demande au gestionnaire");
-        btnEnvoyer.setStyle("-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-padding: 10 20; -fx-font-weight: bold;");
-
+        Button btnEnvoyer = Design.btnPrimary("📤  Envoyer la demande au gestionnaire", Design.GEST_ACCENT);
         btnEnvoyer.setOnAction(e -> {
             if (tfSalle.getText().isEmpty() || tfMotif.getText().isEmpty() || dp.getValue() == null) {
-                msgRes.setText("⚠️ Remplissez au moins la salle, le motif et la date.");
-                msgRes.setStyle("-fx-text-fill: #e67e22; -fx-font-size: 12;"); return;
+                setMsg(msgRes, "⚠️  Remplissez au moins la salle, le motif et la date.", Design.WARNING); return;
             }
             String sujet = "[" + cbType.getValue() + "] " + tfMotif.getText().trim()
                 + " — Salle " + tfSalle.getText().split("—")[0].trim();
@@ -125,19 +157,41 @@ public class ReservationPanel {
                 utilisateur.getRole(), sujet, corps, "RESERVATION", false, null);
             try {
                 msgDAO.envoyer(msg);
-                msgRes.setText("✅ Demande envoyée ! Le gestionnaire la recevra dans sa boîte de réception.");
-                msgRes.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 12;");
+                setMsg(msgRes, "✅  Demande envoyée ! Le gestionnaire la recevra dans sa boîte de réception.", Design.SUCCESS);
                 tfSalle.clear(); tfMotif.clear(); taComment.clear();
                 tableSalles.getSelectionModel().clearSelection();
+                lblSalleChoisie.setText("Aucune salle sélectionnée.");
+                lblSalleChoisie.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.TEXT_MUTED + ";-fx-padding:8 12;-fx-background-color:#f8f9fe;-fx-background-radius:6;");
             } catch (Exception ex) {
-                msgRes.setText("❌ Erreur : " + ex.getMessage());
-                msgRes.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12;");
+                setMsg(msgRes, "❌  Erreur : " + ex.getMessage(), Design.DANGER);
             }
         });
 
-        panel.getChildren().addAll(titre, desc, lblSalles, tableSalles, lblForm, grid, btnEnvoyer, msgRes);
+        formBox.getChildren().addAll(lblSalleChoisie, grid, btnEnvoyer, msgRes);
+        panel.getChildren().add(formBox);
+
         ScrollPane scroll = new ScrollPane(panel);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent;");
         return scroll;
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────
+    private void setMsg(Label lbl, String text, String color) {
+        lbl.setText(text);
+        lbl.setStyle("-fx-font-size:12;-fx-text-fill:" + color + ";-fx-font-weight:bold;" +
+            "-fx-padding:6 10;-fx-background-color:derive(" + color + ",85%);-fx-background-radius:6;");
+    }
+
+    private TextField sf(String prompt, double w) {
+        TextField tf = new TextField();
+        tf.setPromptText(prompt); tf.setPrefWidth(w); tf.setStyle(Design.INPUT_STYLE);
+        return tf;
+    }
+
+    private Label fl(String text) {
+        Label lbl = new Label(text);
+        lbl.setStyle("-fx-font-size:12;-fx-font-weight:bold;-fx-text-fill:" + Design.TEXT_DARK + ";-fx-min-width:140;");
+        return lbl;
     }
 }
