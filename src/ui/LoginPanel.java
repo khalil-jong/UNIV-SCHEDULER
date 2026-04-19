@@ -7,6 +7,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import models.Utilisateur;
 
@@ -19,79 +21,112 @@ public class LoginPanel {
         this.app = app;
     }
 
-    public VBox createPanel() {
-        VBox panel = new VBox(20);
-        panel.setPadding(new Insets(60));
-        panel.setAlignment(Pos.CENTER);
-        panel.setStyle("-fx-background-color: #f0f4f8;");
+    public StackPane createPanel() {
+        StackPane root = new StackPane();
+        root.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a1f3c, #2d3561, #1e2547);");
 
-        // Titre
+        VBox center = new VBox(0);
+        center.setAlignment(Pos.CENTER);
+        center.setMaxWidth(440);
+
+        // ── En-tête logo ─────────────────────────────────────────────
+        VBox header = new VBox(10);
+        header.setAlignment(Pos.CENTER);
+        header.setPadding(new Insets(0, 0, 32, 0));
+
+        Label logo = new Label("🎓");
+        logo.setStyle("-fx-font-size: 52;");
         Label titre = new Label("UNIV-SCHEDULER");
-        titre.setStyle("-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        titre.setStyle("-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label sousTitre = new Label("Gestion des Salles & Emplois du Temps");
+        sousTitre.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.6);");
+        header.getChildren().addAll(logo, titre, sousTitre);
 
-        Label sousTitre = new Label("Gestion des Salles et Emplois du Temps");
-        sousTitre.setStyle("-fx-font-size: 14; -fx-text-fill: #7f8c8d;");
+        // ── Carte formulaire ──────────────────────────────────────────
+        VBox carte = new VBox(16);
+        carte.setPadding(new Insets(36, 40, 36, 40));
+        carte.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-background-radius: 16;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.30), 28, 0, 0, 8);"
+        );
 
-        // Carte de connexion
-        VBox carte = new VBox(15);
-        carte.setPadding(new Insets(30));
-        carte.setMaxWidth(400);
-        carte.setStyle("-fx-background-color: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #ccc, 10, 0, 0, 3);");
+        Label titleCarte = new Label("Connexion");
+        titleCarte.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1a1f3c;");
+        Label subtitle = new Label("Accédez à votre espace de gestion universitaire");
+        subtitle.setStyle("-fx-font-size: 12; -fx-text-fill: #8395a7;");
+        subtitle.setWrapText(true);
 
-        Label labelConnexion = new Label("Connexion");
-        labelConnexion.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-
-        // Champ login
-        Label labelLogin = new Label("Identifiant :");
+        // Login
+        VBox loginBox = new VBox(5);
+        Label lblLogin = new Label("Identifiant");
+        lblLogin.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #1a1f3c;");
         TextField tfLogin = new TextField();
-        tfLogin.setPromptText("Entrez votre identifiant");
-        tfLogin.setPrefHeight(38);
+        tfLogin.setPromptText("Votre identifiant");
+        tfLogin.setPrefHeight(42);
+        tfLogin.setStyle("-fx-background-color: #f8f9fe; -fx-border-color: #d8e1f0; -fx-border-radius: 7; -fx-background-radius: 7; -fx-padding: 6 12; -fx-font-size: 13;");
+        loginBox.getChildren().addAll(lblLogin, tfLogin);
 
-        // Champ mot de passe
-        Label labelMdp = new Label("Mot de passe :");
+        // Mot de passe
+        VBox mdpBox = new VBox(5);
+        Label lblMdp = new Label("Mot de passe");
+        lblMdp.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #1a1f3c;");
         PasswordField pfMdp = new PasswordField();
-        pfMdp.setPromptText("Entrez votre mot de passe");
-        pfMdp.setPrefHeight(38);
+        pfMdp.setPromptText("Votre mot de passe");
+        pfMdp.setPrefHeight(42);
+        pfMdp.setStyle("-fx-background-color: #f8f9fe; -fx-border-color: #d8e1f0; -fx-border-radius: 7; -fx-background-radius: 7; -fx-padding: 6 12; -fx-font-size: 13;");
+        mdpBox.getChildren().addAll(lblMdp, pfMdp);
 
-        // Message d'erreur
+        // Erreur
         Label labelErreur = new Label("");
-        labelErreur.setStyle("-fx-text-fill: red; -fx-font-size: 12;");
+        labelErreur.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12; -fx-padding: 8 12; -fx-background-color: #fdecea; -fx-background-radius: 6;");
+        labelErreur.setWrapText(true);
+        labelErreur.setVisible(false);
+        labelErreur.setManaged(false);
 
-        // Bouton connexion
-        Button btnConnexion = new Button("Se connecter");
-        btnConnexion.setPrefWidth(340);
-        btnConnexion.setPrefHeight(40);
-        btnConnexion.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 5;");
+        // Bouton connexion dégradé
+        Button btnConnexion = new Button("Se connecter  →");
+        btnConnexion.setPrefWidth(Double.MAX_VALUE);
+        btnConnexion.setPrefHeight(44);
+        String btnStyle = "-fx-background-color: linear-gradient(to right, #4f6ef7, #667eea); -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;";
+        String btnHover = "-fx-background-color: linear-gradient(to right, #3d5ce6, #5568d9); -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;";
+        btnConnexion.setStyle(btnStyle);
+        btnConnexion.setOnMouseEntered(e -> btnConnexion.setStyle(btnHover));
+        btnConnexion.setOnMouseExited(e  -> btnConnexion.setStyle(btnStyle));
 
-        // Action connexion
+        // Note
+        HBox noteBox = new HBox();
+        noteBox.setAlignment(Pos.CENTER);
+        Label note = new Label("Compte par défaut : admin / admin123");
+        note.setStyle("-fx-font-size: 11; -fx-text-fill: #8395a7;");
+        noteBox.getChildren().add(note);
+
+        // ── Action ───────────────────────────────────────────────────
         Runnable actionConnexion = () -> {
             String login = tfLogin.getText().trim();
-            String mdp = pfMdp.getText().trim();
-
+            String mdp   = pfMdp.getText().trim();
             if (login.isEmpty() || mdp.isEmpty()) {
-                labelErreur.setText("Veuillez remplir tous les champs.");
-                return;
+                labelErreur.setText("⚠️  Veuillez remplir tous les champs.");
+                labelErreur.setVisible(true); labelErreur.setManaged(true); return;
             }
-
             Utilisateur user = utilisateurDAO.connecter(login, mdp);
             if (user != null) {
                 app.ouvrirInterface(user);
             } else {
-                labelErreur.setText("Identifiant ou mot de passe incorrect.");
+                labelErreur.setText("❌  Identifiant ou mot de passe incorrect.");
+                labelErreur.setVisible(true); labelErreur.setManaged(true);
                 pfMdp.clear();
             }
         };
 
         btnConnexion.setOnAction(e -> actionConnexion.run());
         pfMdp.setOnAction(e -> actionConnexion.run());
+        tfLogin.setOnAction(e -> pfMdp.requestFocus());
 
-        // Note comptes par défaut
-        Label note = new Label("Comptes par défaut: admin/admin123");
-        note.setStyle("-fx-font-size: 11; -fx-text-fill: #95a5a6;");
-
-        carte.getChildren().addAll(labelConnexion, labelLogin, tfLogin, labelMdp, pfMdp, labelErreur, btnConnexion, note);
-        panel.getChildren().addAll(titre, sousTitre, carte);
-
-        return panel;
+        carte.getChildren().addAll(titleCarte, subtitle, loginBox, mdpBox, labelErreur, btnConnexion, noteBox);
+        center.getChildren().addAll(header, carte);
+        root.getChildren().add(center);
+        StackPane.setAlignment(center, Pos.CENTER);
+        return root;
     }
 }
