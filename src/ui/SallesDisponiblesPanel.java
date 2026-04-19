@@ -207,7 +207,7 @@ public class SallesDisponiblesPanel {
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);"
         );
 
-        Label lNum = new Label("🏫  " + s.getNumero());
+        Label lNum = new Label("🚪  " + s.getNumero());
         lNum.setStyle("-fx-font-size:14;-fx-font-weight:bold;-fx-text-fill:" + Design.TEXT_DARK + ";");
 
         Label lBat = new Label(s.getBatiment() + "  ·  " + s.getEtage());
@@ -289,7 +289,7 @@ public class SallesDisponiblesPanel {
         grid.add(fl("🕐  Heure début :"),      0, 1); grid.add(heureBox,   1, 1);
         grid.add(fl("⏱  Durée (min) :"),      0, 2); grid.add(spDur,      1, 2);
         grid.add(fl("👥  Capacité min. :"),    0, 3); grid.add(new HBox(8, spCap, Design.muted("(0 = indifférent)")), 1, 3);
-        grid.add(fl("🏫  Type de salle :"),    0, 4); grid.add(cbType,     1, 4);
+        grid.add(fl("🚪  Type de salle :"),    0, 4); grid.add(cbType,     1, 4);
         grid.add(fl("🔧  Équipements :"),      0, 5); grid.add(equipBox,   1, 5);
 
         Button btnMaintenant = Design.btnPrimary("⚡  Disponible maintenant", Design.SUCCESS);

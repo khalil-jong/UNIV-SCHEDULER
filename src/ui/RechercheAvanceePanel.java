@@ -82,7 +82,7 @@ public class RechercheAvanceePanel {
         grid.add(new Label("🕐 Heure de début :"), 0, 1); grid.add(heureBox, 1, 1);
         grid.add(new Label("⏱ Durée (minutes) :"), 0, 2); grid.add(spinDuree, 1, 2);
         grid.add(new Label("👥 Capacité minimale :"), 0, 3); grid.add(spinCap, 1, 3);
-        grid.add(new Label("🏫 Type de salle :"), 0, 4); grid.add(cbType, 1, 4);
+        grid.add(new Label("🚪 Type de salle :"), 0, 4); grid.add(cbType, 1, 4);
         grid.add(new Label("🔧 Équipements requis :"), 0, 5); grid.add(equipBox, 1, 5);
 
         Button btnMaintenant = new Button("⚡ Disponible maintenant");

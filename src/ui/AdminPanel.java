@@ -107,7 +107,7 @@ public class AdminPanel {
         // ── INFRASTRUCTURE ────────────────────────────────────────────
         menu.getChildren().add(Design.menuTitle("Infrastructure"));
         ajouterBouton(menu, "🏗  Bâtiments",  root, () -> creerGestionBatiments());
-        ajouterBouton(menu, "🏫  Salles",      root, () -> creerGestionSalles());
+        ajouterBouton(menu, "🚪  Salles",      root, () -> creerGestionSalles());
         menu.getChildren().add(separateur());
 
         // ── NOTIFICATIONS ─────────────────────────────────────────────
@@ -412,7 +412,7 @@ public class AdminPanel {
         panel.setPadding(new Insets(28));
         panel.setStyle("-fx-background-color: " + Design.BG_LIGHT + ";");
 
-        Label titre = Design.pageTitle("🏫  Gestion des Salles");
+        Label titre = Design.pageTitle("🚪  Gestion des Salles");
         Label desc  = Design.muted("Cliquez sur une salle pour la modifier. Filtrez par bâtiment pour affiner la liste.");
         panel.getChildren().addAll(titre, desc);
 

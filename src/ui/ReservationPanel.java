@@ -53,7 +53,7 @@ public class ReservationPanel {
         panel.getChildren().addAll(titre, desc);
 
         // ── Tableau des salles ────────────────────────────────────────
-        VBox sallesSection = Design.section("🏫  Salles disponibles — cliquez pour pré-sélectionner");
+        VBox sallesSection = Design.section("🚪  Salles disponibles — cliquez pour pré-sélectionner");
 
         List<Salle> salles = salleDAO.obtenirTous();
         TableView<Salle> tableSalles = new TableView<>(FXCollections.observableArrayList(salles));
@@ -127,7 +127,7 @@ public class ReservationPanel {
         tableSalles.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) {
                 tfSalle.setText(sel.getNumero() + " — " + sel.getBatiment() + " (Cap: " + sel.getCapacite() + ")");
-                lblSalleChoisie.setText("🏫  Salle sélectionnée : " + sel.getNumero() + " — " + sel.getBatiment() + " (Capacité : " + sel.getCapacite() + ")");
+                lblSalleChoisie.setText("🚪  Salle sélectionnée : " + sel.getNumero() + " — " + sel.getBatiment() + " (Capacité : " + sel.getCapacite() + ")");
                 lblSalleChoisie.setStyle(
                     "-fx-font-size:12;-fx-text-fill:" + Design.SUCCESS + ";-fx-font-weight:bold;" +
                     "-fx-padding:8 12;-fx-background-color:#e8faf5;-fx-background-radius:6;"

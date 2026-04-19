@@ -184,7 +184,7 @@ public class EnseignantPanel {
                 lH.setStyle("-fx-font-weight:bold;-fx-font-size:12;-fx-text-fill:" + Design.ENS_ACCENT + ";-fx-min-width:80;");
                 Label lM = new Label(c.getMatiere()); lM.setStyle("-fx-font-weight:bold;-fx-font-size:13;-fx-min-width:150;");
                 Label lC = new Label("🎓  " + c.getClasse()); lC.setStyle("-fx-font-size:12;-fx-min-width:130;");
-                Label lS = new Label("🏫  " + (s != null ? s.getNumero() : "?")); lS.setStyle("-fx-font-size:12;");
+                Label lS = new Label("🚪  " + (s != null ? s.getNumero() : "?")); lS.setStyle("-fx-font-size:12;");
                 carte.getChildren().addAll(lH, lM, lC, lS);
                 sectionCours.getChildren().add(carte);
             }
@@ -283,7 +283,7 @@ public class EnseignantPanel {
 				return;
 			}
             salleChoisie[0] = sel;
-            lblSalleChoisie.setText("🏫  Salle : " + sel.getNumero() + " — " + sel.getBatiment() + " (Cap: " + sel.getCapacite() + ")");
+            lblSalleChoisie.setText("🚪  Salle : " + sel.getNumero() + " — " + sel.getBatiment() + " (Cap: " + sel.getCapacite() + ")");
             lblSalleChoisie.setStyle("-fx-font-size:12;-fx-text-fill:" + Design.SUCCESS + ";-fx-font-weight:bold;-fx-padding:6 10;-fx-background-color:#e8faf5;-fx-background-radius:6;");
             btnEnvoyer.setDisable(false);
         });

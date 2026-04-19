@@ -301,7 +301,7 @@ public class CalendrierPanel {
                     Label lDuree = new Label("⏱ " + c.getDateDebut().format(heureFormatter)
                         + " → " + c.getDateFin().format(heureFormatter) + "  (" + c.getDuree() + " min)");
                     lDuree.setStyle("-fx-font-size: 12;");
-                    Label lSalle = new Label("🏫 Salle " + nomSalle);
+                    Label lSalle = new Label("🚪 Salle " + nomSalle);
                     lSalle.setStyle("-fx-font-size: 12;");
 
                     carte.getChildren().addAll(lMat, lClasse, lEns, lDuree, lSalle);

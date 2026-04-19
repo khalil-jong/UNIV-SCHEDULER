@@ -74,7 +74,7 @@ public class GestionnairePanel {
         menu.getChildren().add(Design.menuTitle("Planification"));
         ajouterBouton(menu, "🎓  Classes, EDT & Cours",  root, () -> new GestionCoursEDTPanel().createPanel());
         ajouterBouton(menu, "👁  Voir un EDT (classe)",   root, () -> new EmploiDuTempsViewPanel(null).createPanel());
-        ajouterBouton(menu, "🏫  Salles disponibles",     root, () -> new SallesDisponiblesPanel().createPanel());
+        ajouterBouton(menu, "🚪  Salles disponibles",     root, () -> new SallesDisponiblesPanel().createPanel());
 
         Separator sep2 = new Separator();
         sep2.setStyle("-fx-background-color: rgba(255,255,255,0.12); -fx-padding: 4 0;");

@@ -42,7 +42,7 @@ public class GestionInfraPanel {
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         Tab tabBat = new Tab("🏢 Bâtiments", creerOngletBatiments());
-        Tab tabSalle = new Tab("🏫 Salles & Équipements", creerOngletSalles());
+        Tab tabSalle = new Tab("🚪 Salles & Équipements", creerOngletSalles());
 
         tabs.getTabs().addAll(tabBat, tabSalle);
         panel.getChildren().addAll(titre, tabs);
