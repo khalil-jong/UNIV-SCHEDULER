@@ -51,6 +51,7 @@ public class UnivSchedulerApp extends Application {
                 return;
         }
 
+
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
     }

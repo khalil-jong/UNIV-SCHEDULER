@@ -7,17 +7,23 @@ public class Utilisateur {
     private String login;
     private String motDePasse;
     private String role;   // ADMIN, GESTIONNAIRE, ENSEIGNANT, ETUDIANT
-    private String classe; // Classe de l'étudiant (null pour les autres rôles)
+    private String classe;  // Classe de l'étudiant (null pour les autres rôles)
+    private String matiere; // Matière(s) enseignée(s) — pour les enseignants
 
     public Utilisateur() {}
 
-    /** Constructeur rétrocompatible sans classe */
+    /** Constructeur rétrocompatible sans classe ni matiere */
     public Utilisateur(int id, String nom, String prenom, String login, String motDePasse, String role) {
         this(id, nom, prenom, login, motDePasse, role, null);
     }
 
-    /** Constructeur complet avec classe */
+    /** Constructeur avec classe (rétrocompat) */
     public Utilisateur(int id, String nom, String prenom, String login, String motDePasse, String role, String classe) {
+        this(id, nom, prenom, login, motDePasse, role, classe, null);
+    }
+
+    /** Constructeur complet */
+    public Utilisateur(int id, String nom, String prenom, String login, String motDePasse, String role, String classe, String matiere) {
         this.id = id;
         this.nom = nom;
         this.prenom = prenom;
@@ -25,6 +31,7 @@ public class Utilisateur {
         this.motDePasse = motDePasse;
         this.role = role;
         this.classe = classe;
+        this.matiere = matiere;
     }
 
     public int getId() { return id; }
@@ -51,6 +58,10 @@ public class Utilisateur {
 
     /** Indique si cet utilisateur est un étudiant affecté à une classe */
     public boolean hasClasse() { return classe != null && !classe.isEmpty(); }
+
+    /** Matière(s) enseignée(s) — null pour les non-enseignants */
+    public String getMatiere() { return matiere != null ? matiere : ""; }
+    public void setMatiere(String matiere) { this.matiere = matiere; }
 
     public String getNomComplet() { return prenom + " " + nom; }
 

@@ -46,7 +46,7 @@ public class UtilisateurDAO {
     }
 
     public void ajouter(Utilisateur u) {
-        String sql = "INSERT INTO utilisateurs (nom, prenom, login, mot_de_passe, role, classe) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO utilisateurs (nom, prenom, login, mot_de_passe, role, classe, matiere) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, u.getNom());
@@ -59,6 +59,11 @@ public class UtilisateurDAO {
             } else {
                 pstmt.setNull(6, java.sql.Types.VARCHAR);
             }
+            if (u.getMatiere() != null && !u.getMatiere().isEmpty()) {
+                pstmt.setString(7, u.getMatiere());
+            } else {
+                pstmt.setNull(7, java.sql.Types.VARCHAR);
+            }
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Impossible d'ajouter l'utilisateur : " + e.getMessage(), e);
@@ -69,8 +74,8 @@ public class UtilisateurDAO {
         // Si mot de passe vide, ne pas le changer
         boolean changerMdp = u.getMotDePasse() != null && !u.getMotDePasse().isEmpty();
         String sql = changerMdp
-            ? "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=?, classe=? WHERE id=?"
-            : "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=?, classe=? WHERE id=?";
+            ? "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=?, classe=?, matiere=? WHERE id=?"
+            : "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=?, classe=?, matiere=? WHERE id=?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getNom());
@@ -83,6 +88,11 @@ public class UtilisateurDAO {
             ps.setString(idx++, u.getRole());
             if (u.getClasse() != null && !u.getClasse().isEmpty()) {
                 ps.setString(idx++, u.getClasse());
+            } else {
+                ps.setNull(idx++, java.sql.Types.VARCHAR);
+            }
+            if (u.getMatiere() != null && !u.getMatiere().isEmpty()) {
+                ps.setString(idx++, u.getMatiere());
             } else {
                 ps.setNull(idx++, java.sql.Types.VARCHAR);
             }
@@ -146,6 +156,7 @@ public class UtilisateurDAO {
             rs.getString("role")
         );
         try { u.setClasse(rs.getString("classe")); } catch (SQLException ignored) {}
+        try { u.setMatiere(rs.getString("matiere")); } catch (SQLException ignored) {}
         return u;
     }
 

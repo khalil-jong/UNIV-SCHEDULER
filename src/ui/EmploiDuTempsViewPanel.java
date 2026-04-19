@@ -49,11 +49,19 @@ public class EmploiDuTempsViewPanel {
     // Couleurs (fidèles à l'image)
     private static final String ENTETE_BG   = "#4D4D4D";
     private static final String ENTETE_FG   = "white";
-    private static final String COURS_BG    = "#FFF9E6";
-    private static final String COURS_BORD  = "#CCBBAA";
+    private static final String COURS_BG    = "#FFF9E6"; // fallback
+    private static final String COURS_BORD  = "#CCBBAA"; // fallback
     private static final String SALLE_COLOR = "#CC2200";
     private static final String VIDE_BG     = "white";
     private static final String PAUSE_BG    = "#E0E0E0";
+
+    // Couleurs par type de cours — cohérentes avec la légende
+    private static final String CM_BG   = "#dbeeff"; // bleu clair
+    private static final String CM_BRD  = "#2980b9"; // bleu
+    private static final String TD_BG   = "#d5f5e3"; // vert clair
+    private static final String TD_BRD  = "#27ae60"; // vert
+    private static final String TP_BG   = "#fdecea"; // orange clair
+    private static final String TP_BRD  = "#e67e22"; // orange
 
     /** Pour étudiant ou gestionnaire */
     public EmploiDuTempsViewPanel(String classeInitiale) {
@@ -250,6 +258,15 @@ public class EmploiDuTempsViewPanel {
     }
 
     private VBox cellCours(EmploiDuTemps cours, String nomSalle, double largeur, double hauteur) {
+        // Couleur selon le type (CM/TD/TP) — cohérent avec la légende
+        String type = cours.getTypeCours() != null ? cours.getTypeCours().toUpperCase() : "CM";
+        String bg, brd;
+        switch (type) {
+            case "TD": bg = TD_BG; brd = TD_BRD; break;
+            case "TP": bg = TP_BG; brd = TP_BRD; break;
+            default:   bg = CM_BG; brd = CM_BRD; break; // CM ou inconnu
+        }
+
         // Matière en gras
         Label lMat = new Label(cours.getMatiere());
         lMat.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;");
@@ -257,10 +274,10 @@ public class EmploiDuTempsViewPanel {
         lMat.setMaxWidth(largeur - 8);
         lMat.setAlignment(Pos.CENTER);
 
-        // Type de cours entre parenthèses
-        String typeLabel = cours.getTypeCours().isEmpty() ? "" : " (" + cours.getTypeCours() + ")";
+        // Enseignant + type
+        String typeLabel = type.isEmpty() ? "" : " (" + type + ")";
         Label lEns = new Label("(" + cours.getEnseignant() + typeLabel + ")");
-        lEns.setStyle("-fx-font-size: 10; -fx-text-fill: #444;");
+        lEns.setStyle("-fx-font-size: 10; -fx-text-fill: #333;");
         lEns.setWrapText(true);
         lEns.setMaxWidth(largeur - 8);
         lEns.setAlignment(Pos.CENTER);
@@ -275,7 +292,8 @@ public class EmploiDuTempsViewPanel {
         cell.setPrefHeight(hauteur);
         cell.setPadding(new Insets(4, 4, 4, 4));
         cell.setAlignment(Pos.CENTER);
-        cell.setStyle("-fx-background-color: " + COURS_BG + "; -fx-border-color: " + COURS_BORD + "; -fx-border-width: 0.5;");
+        // Barre colorée à gauche selon le type (comme la légende)
+        cell.setStyle("-fx-background-color: " + bg + "; -fx-border-color: " + brd + "; -fx-border-width: 0 0 0 4;");
 
         // Tooltip horaire
         Tooltip tip = new Tooltip(
@@ -301,10 +319,11 @@ public class EmploiDuTempsViewPanel {
         HBox leg = new HBox(20);
         leg.setAlignment(Pos.CENTER_LEFT);
         leg.setPadding(new Insets(2, 0, 4, 0));
-        for (String[] tc : new String[][]{{"CM","#2980b9"},{"TD","#27ae60"},{"TP","#e67e22"}}) {
+        String[][] types = {{"CM", CM_BG, CM_BRD}, {"TD", TD_BG, TD_BRD}, {"TP", TP_BG, TP_BRD}};
+        for (String[] tc : types) {
             Label badge = new Label(tc[0]);
-            badge.setStyle("-fx-padding: 2 10; -fx-background-color: " + COURS_BG +
-                "; -fx-border-color: " + tc[1] + "; -fx-border-width: 0 0 0 4; -fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: " + tc[1] + ";");
+            badge.setStyle("-fx-padding: 2 10; -fx-background-color: " + tc[1] +
+                "; -fx-border-color: " + tc[2] + "; -fx-border-width: 0 0 0 4; -fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: " + tc[2] + ";");
             leg.getChildren().add(badge);
         }
         Label lSalle = new Label("Salle en rouge");

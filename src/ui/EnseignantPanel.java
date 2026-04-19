@@ -106,7 +106,7 @@ public class EnseignantPanel {
         String[][] items = {
             {"🏠 Accueil",                 "accueil"},
             {"📅 Mon emploi du temps",     "edt_grille"},
-            {"📋 Liste de mes cours",      "edt_liste"},
+
             {"📨 Réserver une salle",      "reservation"},
             {"🔧 Signaler un problème",    "signalement"},
             {msgLabel,                     "messages"}
@@ -124,7 +124,7 @@ public class EnseignantPanel {
                 switch (item[1]) {
                     case "accueil":     root.setCenter(creerAccueil());             break;
                     case "edt_grille":  root.setCenter(new EmploiDuTempsViewPanel(utilisateur.getNomComplet(), true).createPanel()); break;
-                    case "edt_liste":   root.setCenter(creerListeCours());          break;
+
                     case "reservation": root.setCenter(creerReservation());         break;
                     case "signalement": root.setCenter(creerSignalement());         break;
                     case "messages":    root.setCenter(creerBoiteReception());      break;
@@ -189,35 +189,7 @@ public class EnseignantPanel {
         return scroll;
     }
 
-    // ════════════════════════════════════════════════════════════
-    //  LISTE DES COURS
-    // ════════════════════════════════════════════════════════════
-    private ScrollPane creerListeCours() {
-        VBox panel = new VBox(12); panel.setPadding(new Insets(20));
-        Label titre = new Label("📋 Mon Emploi du Temps");
-        titre.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
 
-        List<Cours> mesCours = coursDAO.obtenirParEnseignantAvecEDT(utilisateur.getNomComplet());
-        Label info = new Label("Cours et créneaux EDT : " + utilisateur.getNomComplet()
-            + "  (" + mesCours.size() + " cours)");
-        info.setStyle("-fx-font-size: 13; -fx-text-fill: #8e44ad;");
-
-        TableView<Cours> table = new TableView<>(FXCollections.observableArrayList(mesCours));
-        table.setPrefHeight(420);
-        table.setPlaceholder(new Label("Aucun cours trouvé."));
-
-        TableColumn<Cours,String>  cMat  = new TableColumn<>("Matière");   cMat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getMatiere())); cMat.setPrefWidth(130);
-        TableColumn<Cours,String>  cCl   = new TableColumn<>("Classe");    cCl.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getClasse())); cCl.setPrefWidth(110);
-        TableColumn<Cours,String>  cDate = new TableColumn<>("Date/Heure");cDate.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDateDebut().format(fmt))); cDate.setPrefWidth(140);
-        TableColumn<Cours,String>  cFin  = new TableColumn<>("Fin");       cFin.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDateFin().format(hFmt))); cFin.setPrefWidth(55);
-        TableColumn<Cours,Integer> cDur  = new TableColumn<>("Durée");     cDur.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getDuree())); cDur.setPrefWidth(65);
-        TableColumn<Cours,String>  cSalle= new TableColumn<>("Salle");     cSalle.setCellValueFactory(c -> { Salle s = salleDAO.obtenirParId(c.getValue().getSalleId()); return new SimpleStringProperty(s!=null?s.getNumero():"?"); }); cSalle.setPrefWidth(75);
-        table.getColumns().addAll(cMat, cCl, cDate, cFin, cDur, cSalle);
-
-        panel.getChildren().addAll(titre, info, table);
-        ScrollPane scroll = new ScrollPane(panel); scroll.setFitToWidth(true);
-        return scroll;
-    }
 
     // ════════════════════════════════════════════════════════════
     //  RÉSERVATION DE SALLE (avec recherche de salles disponibles)

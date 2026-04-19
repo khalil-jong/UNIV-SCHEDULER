@@ -160,38 +160,66 @@ public class DashboardPanel {
             }
         }
 
-        // === SALLES CRITIQUES (occupation > 80%) ===
+        // === ÉTAT DE TOUTES LES SALLES (avec scroll) ===
         VBox sectionSalles = new VBox(8);
-        Label titreSalles = new Label("🏫 État des Salles");
+        Label titreSalles = new Label("🏫 État des Salles (" + salles.size() + " salles)");
         titreSalles.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
         sectionSalles.getChildren().add(titreSalles);
 
-        for (Salle s : salles.stream().limit(6).collect(java.util.stream.Collectors.toList())) {
+        // Légende couleurs
+        HBox legendeSalles = new HBox(16);
+        legendeSalles.setAlignment(Pos.CENTER_LEFT);
+        for (String[] lg : new String[][]{{"🟢 Faible (0-40%)", "#27ae60"}, {"🟡 Moyen (40-75%)", "#f39c12"}, {"🔴 Élevé (>75%)", "#e74c3c"}}) {
+            Label ll = new Label(lg[0]);
+            ll.setStyle("-fx-font-size: 11; -fx-text-fill: " + lg[1] + "; -fx-font-weight: bold;");
+            legendeSalles.getChildren().add(ll);
+        }
+        sectionSalles.getChildren().add(legendeSalles);
+
+        // Conteneur scrollable pour toutes les salles
+        VBox listeSalles = new VBox(4);
+        listeSalles.setPadding(new Insets(4));
+        for (Salle s : salles) {
             long nbCoursSalle = cours.stream().filter(c -> c.getSalleId() == s.getId()).count();
-            double taux = salles.isEmpty() ? 0 : Math.min(100, nbCoursSalle * 12.5);
+            // Calcul du taux : chaque créneau EDT représente ~8% de la capacité hebdomadaire (12 créneaux max par semaine)
+            double taux = Math.min(100, nbCoursSalle == 0 ? 0 : Math.min(100.0, nbCoursSalle * (100.0 / 12.0)));
             String couleur = taux > 75 ? "#e74c3c" : taux > 40 ? "#f39c12" : "#27ae60";
 
             HBox ligne = new HBox(10);
             ligne.setAlignment(Pos.CENTER_LEFT);
-            ligne.setPadding(new Insets(6 ,10, 6, 10));
-            ligne.setStyle("-fx-background-color: white; -fx-background-radius: 4;");
+            ligne.setPadding(new Insets(5, 10, 5, 10));
+            ligne.setStyle("-fx-background-color: white; -fx-background-radius: 4; -fx-border-color: #ecf0f1; -fx-border-width: 1;");
 
             Label nomSalle = new Label(s.getNumero() + " – " + s.getBatiment());
-            nomSalle.setStyle("-fx-font-size: 12; -fx-min-width: 180;");
+            nomSalle.setStyle("-fx-font-size: 12; -fx-min-width: 190;");
+
+            Label typeLbl = new Label("[" + s.getType() + "]");
+            typeLbl.setStyle("-fx-font-size: 11; -fx-text-fill: #7f8c8d; -fx-min-width: 50;");
+
+            Label capLbl = new Label("👥 " + s.getCapacite());
+            capLbl.setStyle("-fx-font-size: 11; -fx-text-fill: #555; -fx-min-width: 55;");
 
             ProgressBar pb = new ProgressBar(taux / 100.0);
-            pb.setPrefWidth(200);
+            pb.setPrefWidth(180);
             pb.setStyle("-fx-accent: " + couleur + ";");
 
             Label pct = new Label(String.format("%.0f%%", taux));
-            pct.setStyle("-fx-font-size: 12; -fx-text-fill: " + couleur + "; -fx-font-weight: bold;");
+            pct.setStyle("-fx-font-size: 12; -fx-text-fill: " + couleur + "; -fx-font-weight: bold; -fx-min-width: 42;");
 
             Label equip = new Label(s.getEquipementsStr());
             equip.setStyle("-fx-font-size: 12;");
 
-            ligne.getChildren().addAll(nomSalle, pb, pct, equip);
-            sectionSalles.getChildren().add(ligne);
+            ligne.getChildren().addAll(nomSalle, typeLbl, capLbl, pb, pct, equip);
+            listeSalles.getChildren().add(ligne);
         }
+
+        // ScrollPane dédié à la liste des salles (max 280px de haut)
+        ScrollPane scrollSalles = new ScrollPane(listeSalles);
+        scrollSalles.setFitToWidth(true);
+        scrollSalles.setPrefHeight(Math.min(280, salles.size() * 42 + 10));
+        scrollSalles.setMaxHeight(320);
+        scrollSalles.setStyle("-fx-border-color: #ddd; -fx-border-radius: 4;");
+        sectionSalles.getChildren().add(scrollSalles);
 
         panel.getChildren().addAll(titre, dateLbl, barActu, row1, row2, new Separator(), sectionCours, new Separator(), sectionConflits, new Separator(), sectionSalles);
 

@@ -1,7 +1,6 @@
 package ui;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -27,7 +26,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import models.Cours;
-import models.EmploiDuTemps;
 import models.Salle;
 
 /**
@@ -59,9 +57,6 @@ public class CalendrierPanel {
         "#8e44ad","#1abc9c","#e67e22","#2c3e50"
     };
     // Couleur EDT (crème comme l'EDT)
-    private static final String EDT_BG   = "#FFF9E6";
-    private static final String EDT_BRD  = "#CCBBAA";
-    private static final String EDT_SALLE= "#CC2200";
 
     public VBox createPanel() {
         VBox panel = new VBox(10);
@@ -154,13 +149,13 @@ public class CalendrierPanel {
         leg.setAlignment(Pos.CENTER_LEFT);
         leg.setPadding(new Insets(2, 0, 4, 0));
 
-        Label lPonct = new Label("Cours ponctuel");
+        Label lPonct = new Label("📚 Cours sous demande (ponctuel)");
         lPonct.setStyle("-fx-padding: 2 8; -fx-background-color: #d6eaf8; -fx-border-color: #2980b9; -fx-border-width: 0 0 0 4; -fx-font-size: 11;");
 
-        Label lEDT = new Label("Emploi du temps");
-        lEDT.setStyle("-fx-padding: 2 8; -fx-background-color: " + EDT_BG + "; -fx-border-color: " + EDT_BRD + "; -fx-border-width: 0 0 0 4; -fx-font-size: 11;");
+        Label note = new Label("ℹ️ Les emplois du temps hebdomadaires sont consultables dans « Emploi du temps »");
+        note.setStyle("-fx-font-size: 10; -fx-text-fill: #7f8c8d; -fx-font-style: italic;");
 
-        leg.getChildren().addAll(new Label("Légende : "), lPonct, lEDT);
+        leg.getChildren().addAll(new Label("Légende : "), lPonct, note);
         return leg;
     }
 
@@ -176,18 +171,14 @@ public class CalendrierPanel {
     private void afficherVueSemaine() {
         LocalDate lundi = semaineCourante.with(java.time.DayOfWeek.MONDAY);
 
-        // Cours ponctuels
+        // Cours ponctuels (sous demande uniquement — l'EDT est dans les emplois du temps)
         List<Cours> coursPonctuels = (classeFiltre == null)
             ? coursDAO.obtenirParSemaine(lundi.atStartOfDay())
             : coursDAO.obtenirParSemaineEtClasse(lundi.atStartOfDay(), classeFiltre);
 
-        // Créneaux EDT → convertis en "cours virtuels" pour cette semaine
-        List<Cours> coursEDT = convertirEdtEnCours(lundi);
-
         // Classes présentes (pour couleurs)
         List<String> classesPresentes = new ArrayList<>();
         coursPonctuels.stream().map(Cours::getClasse).filter(c -> !classesPresentes.contains(c)).forEach(classesPresentes::add);
-        coursEDT.stream().map(Cours::getClasse).filter(c -> !classesPresentes.contains(c)).forEach(classesPresentes::add);
 
         VBox contenu = new VBox(2);
         contenu.setPadding(new Insets(5));
@@ -218,12 +209,7 @@ public class CalendrierPanel {
                               && c.getDateDebut().getHour() == heureH)
                     .collect(Collectors.toList());
 
-                List<Cours> edtCours = coursEDT.stream()
-                    .filter(c -> c.getDateDebut().toLocalDate().equals(jourJ)
-                              && c.getDateDebut().getHour() == heureH)
-                    .collect(Collectors.toList());
-
-                if (ponctuels.isEmpty() && edtCours.isEmpty()) {
+                if (ponctuels.isEmpty()) {
                     ligne.getChildren().add(creerCellule("", 155, "white", false, false));
                 } else {
                     VBox cellule = new VBox(2);
@@ -231,23 +217,7 @@ public class CalendrierPanel {
                     cellule.setPadding(new Insets(2));
                     cellule.setStyle("-fx-border-color: #bdc3c7; -fx-border-width: 0.5;");
 
-                    // EDT en premier (fond crème)
-                    for (Cours c : edtCours) {
-                        Salle salle = salleDAO.obtenirParId(c.getSalleId());
-                        String nomSalle = salle != null ? salle.getNumero() : "?";
-                        Label lbl = new Label(
-                            "📋 " + c.getMatiere() + "\n" +
-                            c.getClasse() + "\n" +
-                            c.getEnseignant() + "\n" + nomSalle);
-                        lbl.setWrapText(true); lbl.setMaxWidth(149);
-                        lbl.setStyle("-fx-font-size: 10; -fx-padding: 3; " +
-                            "-fx-background-color: " + EDT_BG + "; " +
-                            "-fx-border-color: " + EDT_BRD + "; " +
-                            "-fx-border-width: 0 0 0 3; -fx-border-radius: 2;");
-                        cellule.getChildren().add(lbl);
-                    }
-
-                    // Cours ponctuels
+                    // Cours ponctuels (sous demande)
                     for (Cours c : ponctuels) {
                         int idx = classesPresentes.indexOf(c.getClasse());
                         String bg  = COULEURS[idx >= 0 ? idx % COULEURS.length : 0];
@@ -287,20 +257,12 @@ public class CalendrierPanel {
         labelJour.setStyle("-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
         contenu.getChildren().add(labelJour);
 
-        // Cours ponctuels
+        // Cours ponctuels sous demande uniquement
         List<Cours> coursPonctuels = (classeFiltre == null)
             ? coursDAO.obtenirParJour(semaineCourante.atStartOfDay())
             : coursDAO.obtenirParJourEtClasse(semaineCourante.atStartOfDay(), classeFiltre);
 
-        // EDT pour ce jour
-        LocalDate lundi = semaineCourante.with(java.time.DayOfWeek.MONDAY);
-        List<Cours> coursEDT = convertirEdtEnCours(lundi).stream()
-            .filter(c -> c.getDateDebut().toLocalDate().equals(semaineCourante))
-            .collect(Collectors.toList());
-
-        // Fusionner et trier
-        List<Cours> tous = new ArrayList<>(coursEDT);
-        tous.addAll(coursPonctuels);
+        List<Cours> tous = new ArrayList<>(coursPonctuels);
         tous.sort((a, b) -> a.getDateDebut().compareTo(b.getDateDebut()));
 
         if (tous.isEmpty()) {
@@ -323,17 +285,14 @@ public class CalendrierPanel {
 
                 HBox row = new HBox(8);
                 for (Cours c : rangee) {
-                    boolean estEDT = c.getGroupe() != null && c.getGroupe().equals("__EDT__");
                     Salle salle = salleDAO.obtenirParId(c.getSalleId());
                     String nomSalle = salle != null ? salle.getNumero() : "?";
 
                     VBox carte = new VBox(4);
                     carte.setPadding(new Insets(12)); carte.setPrefWidth(270);
-                    carte.setStyle(estEDT
-                        ? "-fx-background-color: " + EDT_BG + "; -fx-border-color: " + EDT_BRD + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-border-width: 0 0 0 4;"
-                        : "-fx-background-color: #d6eaf8; -fx-border-color: #3498db; -fx-border-radius: 6; -fx-background-radius: 6; -fx-border-width: 0 0 0 4;");
+                    carte.setStyle("-fx-background-color: #d6eaf8; -fx-border-color: #3498db; -fx-border-radius: 6; -fx-background-radius: 6; -fx-border-width: 0 0 0 4;");
 
-                    Label lMat = new Label((estEDT ? "📋 " : "📚 ") + c.getMatiere());
+                    Label lMat = new Label("📚 " + c.getMatiere());
                     lMat.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
                     Label lClasse = new Label("🎓 " + c.getClasse());
                     lClasse.setStyle("-fx-font-size: 12;");
@@ -344,9 +303,6 @@ public class CalendrierPanel {
                     lDuree.setStyle("-fx-font-size: 12;");
                     Label lSalle = new Label("🏫 Salle " + nomSalle);
                     lSalle.setStyle("-fx-font-size: 12;");
-                    if (estEDT) {
-						lSalle.setStyle("-fx-font-size: 12; -fx-text-fill: " + EDT_SALLE + "; -fx-font-weight: bold;");
-					}
 
                     carte.getChildren().addAll(lMat, lClasse, lEns, lDuree, lSalle);
                     row.getChildren().add(carte);
@@ -360,37 +316,7 @@ public class CalendrierPanel {
         zoneCalendrier.setCenter(scroll);
     }
 
-    /**
-     * Convertit les créneaux EDT de la semaine en objets Cours "virtuels"
-     * pour les afficher dans le calendrier.
-     * Le champ groupe est marqué "__EDT__" pour les distinguer.
-     */
-    private List<Cours> convertirEdtEnCours(LocalDate lundi) {
-        // N'utiliser que les EDT dont la classe existe encore
-        List<EmploiDuTemps> edtData = (classeFiltre == null)
-            ? edtDAO.obtenirTousClassesValides()
-            : edtDAO.obtenirParClasse(classeFiltre);
 
-        List<Cours> result = new ArrayList<>();
-        for (EmploiDuTemps e : edtData) {
-            if (e.getJourSemaine() < 1 || e.getJourSemaine() > 6) {
-				continue;
-			}
-            LocalDate jourDate  = lundi.plusDays(e.getJourSemaine() - 1);
-            LocalDateTime debut = jourDate.atTime(e.getHeureDebut());
-            result.add(new Cours(
-                -(e.getId()),              // id négatif = EDT
-                e.getMatiere(),
-                e.getEnseignant(),
-                e.getClasse(),
-                "__EDT__",                 // marqueur
-                debut,
-                e.getDuree(),
-                e.getSalleId()
-            ));
-        }
-        return result;
-    }
 
     private VBox creerCellule(String texte, double largeur, String couleur, boolean bold, boolean unused) {
         VBox cell = new VBox();

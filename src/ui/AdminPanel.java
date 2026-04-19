@@ -132,6 +132,11 @@ public class AdminPanel {
         TableColumn<Utilisateur,String> cLogin = new TableColumn<>("Login");
         cLogin.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLogin())); cLogin.setPrefWidth(120);
         table.getColumns().addAll(cNom, cLogin);
+        if (role.equals("ENSEIGNANT")) {
+            TableColumn<Utilisateur,String> cMat = new TableColumn<>("Matière(s)");
+            cMat.setCellValueFactory(cv -> new SimpleStringProperty(cv.getValue().getMatiere())); cMat.setPrefWidth(200);
+            table.getColumns().add(cMat);
+        }
 
         // ── Formulaire Ajouter / Modifier ──
         final Utilisateur[] enCours = {null};
@@ -151,10 +156,19 @@ public class AdminPanel {
         PasswordField pfMdp    = new PasswordField();
         pfMdp.setPromptText("Mot de passe (laisser vide = inchangé)"); pfMdp.setPrefWidth(220);
 
+        // Champ matière — affiché uniquement pour les enseignants
+        TextField tfMatiere = new TextField();
+        tfMatiere.setPromptText("Ex: Algorithmique, Réseaux...");
+        tfMatiere.setPrefWidth(300);
+        boolean isEnseignant = role.equals("ENSEIGNANT");
+
         grid.add(new Label("Nom :"),          0, 0); grid.add(tfNom,    1, 0);
         grid.add(new Label("Prénom :"),       2, 0); grid.add(tfPrenom, 3, 0);
         grid.add(new Label("Login :"),        0, 1); grid.add(tfLogin,  1, 1);
         grid.add(new Label("Mot de passe :"), 0, 2); grid.add(pfMdp,    1, 2, 3, 1);
+        if (isEnseignant) {
+            grid.add(new Label("Matière(s) :"), 0, 3); grid.add(tfMatiere, 1, 3, 3, 1);
+        }
 
         Label msgU = new Label(""); msgU.setStyle("-fx-font-size: 12;"); msgU.setWrapText(true);
 
@@ -166,6 +180,7 @@ public class AdminPanel {
             enCours[0] = sel;
             tfNom.setText(sel.getNom()); tfPrenom.setText(sel.getPrenom());
             tfLogin.setText(sel.getLogin()); pfMdp.clear();
+            tfMatiere.setText(sel.getMatiere() != null ? sel.getMatiere() : "");
             lblMode.setText("Mode : ✏️ Modification de " + sel.getNomComplet());
             lblMode.setStyle("-fx-font-size:12;-fx-text-fill:#e67e22;-fx-font-weight:bold;");
         });
@@ -183,6 +198,9 @@ public class AdminPanel {
                     enCours[0].setPrenom(tfPrenom.getText().trim());
                     enCours[0].setLogin(tfLogin.getText().trim());
                     enCours[0].setMotDePasse(pfMdp.getText().trim()); // vide = inchangé
+                    if (isEnseignant) {
+						enCours[0].setMatiere(tfMatiere.getText().trim());
+					}
                     utilisateurDAO.modifier(enCours[0]);
                     msgU.setText("✅ Utilisateur modifié."); msgU.setStyle("-fx-text-fill:#27ae60;");
                 } else {
@@ -193,11 +211,15 @@ public class AdminPanel {
                     u.setNom(tfNom.getText().trim()); u.setPrenom(tfPrenom.getText().trim());
                     u.setLogin(tfLogin.getText().trim()); u.setMotDePasse(pfMdp.getText().trim());
                     u.setRole(role);
+                    if (isEnseignant) {
+						u.setMatiere(tfMatiere.getText().trim());
+					}
                     utilisateurDAO.ajouter(u);
                     msgU.setText("✅ Utilisateur ajouté."); msgU.setStyle("-fx-text-fill:#27ae60;");
                 }
                 items.setAll(utilisateurDAO.obtenirParRole(role));
                 viderFormUser(tfNom, tfPrenom, tfLogin, pfMdp);
+                tfMatiere.clear();
                 enCours[0] = null; table.getSelectionModel().clearSelection();
                 lblMode.setText("Mode : ➕ Ajout"); lblMode.setStyle("-fx-font-size:12;-fx-text-fill:#3498db;-fx-font-weight:bold;");
             } catch (Exception ex) { msgU.setText("❌ " + ex.getMessage()); msgU.setStyle("-fx-text-fill:#e74c3c;"); }
@@ -207,6 +229,7 @@ public class AdminPanel {
         btnAnnuler.setStyle("-fx-background-color:#95a5a6;-fx-text-fill:white;-fx-padding:8 14;");
         btnAnnuler.setOnAction(e -> {
             viderFormUser(tfNom, tfPrenom, tfLogin, pfMdp); enCours[0] = null;
+            tfMatiere.clear();
             table.getSelectionModel().clearSelection();
             lblMode.setText("Mode : ➕ Ajout"); lblMode.setStyle("-fx-font-size:12;-fx-text-fill:#3498db;-fx-font-weight:bold;");
             msgU.setText("");

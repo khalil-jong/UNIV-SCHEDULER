@@ -59,16 +59,17 @@ CREATE TABLE `utilisateurs` (
   `mot_de_passe` varchar(255) NOT NULL,   -- longueur étendue pour hachage futur (BCrypt = 60 chars)
   `role`        enum('ADMIN','GESTIONNAIRE','ENSEIGNANT','ETUDIANT') NOT NULL,
   `classe`      varchar(60)  DEFAULT NULL COMMENT 'Classe de l''étudiant (NULL pour autres rôles)',
+  `matiere`     varchar(200) DEFAULT NULL COMMENT 'Matière(s) enseignée(s) — enseignants uniquement',
   `created_at`  timestamp    NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- AVERTISSEMENT : mots de passe en clair — à hacher avec BCrypt en production
-INSERT INTO `utilisateurs` (`id`, `nom`, `prenom`, `login`, `mot_de_passe`, `role`, `classe`, `created_at`) VALUES
-(1, 'Ibra',    'Diongue',   'admin',        'admin123',  'ADMIN',        NULL,              '2026-03-13 06:23:27'),
-(2, 'Diallo',  'Ibrahima',  'gestionnaire', 'gest123',   'GESTIONNAIRE', NULL,              '2026-03-13 06:23:27'),
-(3, 'Martin',  'Jean',      'enseignant',   'ens123',    'ENSEIGNANT',   NULL,              '2026-03-13 06:23:27'),
-(4, 'Ndiaye',  'Fatou',     'etudiant',     'etu123',    'ETUDIANT',     'L1-informatique', '2026-03-13 06:23:27'),
-(5, 'Diallo',  'Alssainy',  'alssainy',     'alssainy',  'ENSEIGNANT',   NULL,              '2026-03-14 02:14:31');
+INSERT INTO `utilisateurs` (`id`, `nom`, `prenom`, `login`, `mot_de_passe`, `role`, `classe`, `matiere`, `created_at`) VALUES
+(1, 'Ibra',    'Diongue',   'admin',        'admin123',  'ADMIN',        NULL,              NULL,                '2026-03-13 06:23:27'),
+(2, 'Diallo',  'Ibrahima',  'gestionnaire', 'gest123',   'GESTIONNAIRE', NULL,              NULL,                '2026-03-13 06:23:27'),
+(3, 'Martin',  'Jean',      'enseignant',   'ens123',    'ENSEIGNANT',   NULL,              'Mathématiques',     '2026-03-13 06:23:27'),
+(4, 'Ndiaye',  'Fatou',     'etudiant',     'etu123',    'ETUDIANT',     'L1-informatique', NULL,                '2026-03-13 06:23:27'),
+(5, 'Diallo',  'Alssainy',  'alssainy',     'alssainy',  'ENSEIGNANT',   NULL,              'Algorithmique',     '2026-03-14 02:14:31');
 
 -- --------------------------------------------------------
 -- Table `salles`
