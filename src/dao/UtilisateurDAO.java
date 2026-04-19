@@ -46,7 +46,13 @@ public class UtilisateurDAO {
     }
 
     public void ajouter(Utilisateur u) {
-        String sql = "INSERT INTO utilisateurs (nom, prenom, login, mot_de_passe, role, classe, matiere) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        boolean estEnseignant = "ENSEIGNANT".equals(u.getRole());
+        // La colonne `matiere` n'est pertinente que pour les enseignants.
+        // On l'inclut dans le INSERT uniquement pour ce rôle afin d'éviter
+        // l'erreur "Unknown column 'matiere'" sur les bases sans cette colonne.
+        String sql = estEnseignant
+            ? "INSERT INTO utilisateurs (nom, prenom, login, mot_de_passe, role, classe, matiere) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            : "INSERT INTO utilisateurs (nom, prenom, login, mot_de_passe, role, classe) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, u.getNom());
@@ -59,10 +65,12 @@ public class UtilisateurDAO {
             } else {
                 pstmt.setNull(6, java.sql.Types.VARCHAR);
             }
-            if (u.getMatiere() != null && !u.getMatiere().isEmpty()) {
-                pstmt.setString(7, u.getMatiere());
-            } else {
-                pstmt.setNull(7, java.sql.Types.VARCHAR);
+            if (estEnseignant) {
+                if (u.getMatiere() != null && !u.getMatiere().isEmpty()) {
+                    pstmt.setString(7, u.getMatiere());
+                } else {
+                    pstmt.setNull(7, java.sql.Types.VARCHAR);
+                }
             }
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -72,10 +80,19 @@ public class UtilisateurDAO {
 
     public void modifier(Utilisateur u) {
         // Si mot de passe vide, ne pas le changer
-        boolean changerMdp = u.getMotDePasse() != null && !u.getMotDePasse().isEmpty();
-        String sql = changerMdp
-            ? "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=?, classe=?, matiere=? WHERE id=?"
-            : "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=?, classe=?, matiere=? WHERE id=?";
+        boolean changerMdp    = u.getMotDePasse() != null && !u.getMotDePasse().isEmpty();
+        boolean estEnseignant = "ENSEIGNANT".equals(u.getRole());
+        // La colonne `matiere` n'est incluse dans le UPDATE que pour les enseignants.
+        String sql;
+        if (changerMdp && estEnseignant) {
+            sql = "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=?, classe=?, matiere=? WHERE id=?";
+        } else if (changerMdp) {
+            sql = "UPDATE utilisateurs SET nom=?, prenom=?, login=?, mot_de_passe=?, role=?, classe=? WHERE id=?";
+        } else if (estEnseignant) {
+            sql = "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=?, classe=?, matiere=? WHERE id=?";
+        } else {
+            sql = "UPDATE utilisateurs SET nom=?, prenom=?, login=?, role=?, classe=? WHERE id=?";
+        }
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getNom());
@@ -91,10 +108,12 @@ public class UtilisateurDAO {
             } else {
                 ps.setNull(idx++, java.sql.Types.VARCHAR);
             }
-            if (u.getMatiere() != null && !u.getMatiere().isEmpty()) {
-                ps.setString(idx++, u.getMatiere());
-            } else {
-                ps.setNull(idx++, java.sql.Types.VARCHAR);
+            if (estEnseignant) {
+                if (u.getMatiere() != null && !u.getMatiere().isEmpty()) {
+                    ps.setString(idx++, u.getMatiere());
+                } else {
+                    ps.setNull(idx++, java.sql.Types.VARCHAR);
+                }
             }
             ps.setInt(idx, u.getId());
             ps.executeUpdate();
