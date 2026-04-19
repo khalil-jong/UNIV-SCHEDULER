@@ -322,13 +322,22 @@ public class GestionCoursEDTPanel {
         cbEns.setPromptText("Sélectionner un enseignant"); cbEns.setPrefWidth(240);
         cbEns.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Utilisateur u, boolean e) {
-                super.updateItem(u, e); setText(e || u == null ? null : u.getNomComplet());
+                super.updateItem(u, e);
+                if (e || u == null) { setText(null); } else {
+                    String mat = u.getMatiere() != null && !u.getMatiere().isBlank()
+                                 ? "  —  " + u.getMatiere() : "";
+                    setText(u.getNomComplet() + mat);
+                }
             }
         });
         cbEns.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(Utilisateur u, boolean e) {
                 super.updateItem(u, e);
-                setText(e || u == null ? "Sélectionner un enseignant" : u.getNomComplet());
+                if (e || u == null) { setText("Sélectionner un enseignant"); } else {
+                    String mat = u.getMatiere() != null && !u.getMatiere().isBlank()
+                                 ? "  —  " + u.getMatiere() : "";
+                    setText(u.getNomComplet() + mat);
+                }
             }
         });
 

@@ -7,7 +7,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import models.Utilisateur;
@@ -94,13 +93,6 @@ public class LoginPanel {
         btnConnexion.setOnMouseEntered(e -> btnConnexion.setStyle(btnHover));
         btnConnexion.setOnMouseExited(e  -> btnConnexion.setStyle(btnStyle));
 
-        // Note
-        HBox noteBox = new HBox();
-        noteBox.setAlignment(Pos.CENTER);
-        Label note = new Label("Compte par défaut : admin / admin123");
-        note.setStyle("-fx-font-size: 11; -fx-text-fill: #8395a7;");
-        noteBox.getChildren().add(note);
-
         // ── Action ───────────────────────────────────────────────────
         Runnable actionConnexion = () -> {
             String login = tfLogin.getText().trim();
@@ -123,7 +115,7 @@ public class LoginPanel {
         pfMdp.setOnAction(e -> actionConnexion.run());
         tfLogin.setOnAction(e -> pfMdp.requestFocus());
 
-        carte.getChildren().addAll(titleCarte, subtitle, loginBox, mdpBox, labelErreur, btnConnexion, noteBox);
+        carte.getChildren().addAll(titleCarte, subtitle, loginBox, mdpBox, labelErreur, btnConnexion);
         center.getChildren().addAll(header, carte);
         root.getChildren().add(center);
         StackPane.setAlignment(center, Pos.CENTER);

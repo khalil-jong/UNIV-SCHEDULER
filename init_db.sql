@@ -17,15 +17,14 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
---
+
 -- Base de données : `univ_scheduler`
---
+
 
 -- --------------------------------------------------------
 
---
+
 -- Structure de la table `batiments`
---
 
 CREATE TABLE `batiments` (
   `id` int(11) NOT NULL,
@@ -35,9 +34,8 @@ CREATE TABLE `batiments` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+
 -- Déchargement des données de la table `batiments`
---
 
 INSERT INTO `batiments` (`id`, `nom`, `localisation`, `nombre_etages`, `created_at`) VALUES
 (4, 'UFR-SET', 'A droite de l\'entrée principale', 0, '2026-04-05 13:55:21'),
@@ -46,9 +44,8 @@ INSERT INTO `batiments` (`id`, `nom`, `localisation`, `nombre_etages`, `created_
 
 -- --------------------------------------------------------
 
---
+
 -- Structure de la table `classes`
---
 
 CREATE TABLE `classes` (
   `id` int(11) NOT NULL,
@@ -59,9 +56,7 @@ CREATE TABLE `classes` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
 -- Déchargement des données de la table `classes`
---
 
 INSERT INTO `classes` (`id`, `nom`, `filiere`, `niveau`, `effectif`, `created_at`) VALUES
 (2, 'L1-mathématique', 'MATHEMATIQUE', 'Licence 1', 101, '2026-04-15 10:16:44'),
@@ -69,9 +64,8 @@ INSERT INTO `classes` (`id`, `nom`, `filiere`, `niveau`, `effectif`, `created_at
 
 -- --------------------------------------------------------
 
---
+
 -- Structure de la table `cours`
---
 
 CREATE TABLE `cours` (
   `id` int(11) NOT NULL,
@@ -85,9 +79,8 @@ CREATE TABLE `cours` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+
 -- Déchargement des données de la table `cours`
---
 
 INSERT INTO `cours` (`id`, `matiere`, `enseignant`, `classe`, `groupe`, `date_debut`, `duree`, `salle_id`, `created_at`) VALUES
 (9, 'algo', 'Jean Martin', 'L2-informatique', '', '2026-04-13 08:00:00', 90, 11, '2026-04-17 20:21:44'),
@@ -97,9 +90,8 @@ INSERT INTO `cours` (`id`, `matiere`, `enseignant`, `classe`, `groupe`, `date_de
 
 -- --------------------------------------------------------
 
---
+
 -- Structure de la table `emploi_du_temps`
---
 
 CREATE TABLE `emploi_du_temps` (
   `id` int(11) NOT NULL,
@@ -115,9 +107,7 @@ CREATE TABLE `emploi_du_temps` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
 -- Déchargement des données de la table `emploi_du_temps`
---
 
 INSERT INTO `emploi_du_temps` (`id`, `classe`, `matiere`, `enseignant`, `salle_id`, `jour_semaine`, `heure_debut`, `duree`, `type_cours`, `actif`, `created_at`) VALUES
 (9, 'L2-informatique', 'algo', 'Jean Martin', 11, 1, '08:00:00', 90, 'CM', 1, '2026-04-17 20:21:44'),
@@ -126,9 +116,8 @@ INSERT INTO `emploi_du_temps` (`id`, `classe`, `matiere`, `enseignant`, `salle_i
 
 -- --------------------------------------------------------
 
---
+
 -- Structure de la table `messages`
---
 
 CREATE TABLE `messages` (
   `id` int(11) NOT NULL,
@@ -144,9 +133,8 @@ CREATE TABLE `messages` (
   `destinataire_id` int(11) DEFAULT NULL COMMENT 'ID utilisateur destinataire (NULL = tous du rôle)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+
 -- Déchargement des données de la table `messages`
---
 
 INSERT INTO `messages` (`id`, `expediteur_id`, `expediteur_nom`, `expediteur_role`, `sujet`, `corps`, `type`, `lu`, `created_at`, `destinataire_role`, `destinataire_id`) VALUES
 (14, 2, 'Ibrahima Diallo', 'GESTIONNAIRE', '[Réponse signalement] response', 'hhhhhhhhhhh7iuy6tre', 'GENERAL', 0, '2026-04-18 23:48:04', 'ENSEIGNANT', 5),
@@ -157,14 +145,12 @@ INSERT INTO `messages` (`id`, `expediteur_id`, `expediteur_nom`, `expediteur_rol
 (19, 2, 'Ibrahima Diallo', 'GESTIONNAIRE', '[Groupe] tous les etudiants', 'ssss', 'GENERAL', 0, '2026-04-18 23:49:38', 'ETUDIANT', 4),
 (20, 2, 'Ibrahima Diallo', 'GESTIONNAIRE', '[Groupe] tous les utilisateur', 'sssss', 'GENERAL', 0, '2026-04-18 23:50:00', 'ENSEIGNANT', 5),
 (21, 2, 'Ibrahima Diallo', 'GESTIONNAIRE', '[Groupe] tous les utilisateur', 'sssss', 'GENERAL', 0, '2026-04-18 23:50:00', 'ENSEIGNANT', 3),
-(22, 2, 'Ibrahima Diallo', 'GESTIONNAIRE', '[Groupe] tous les utilisateur', 'sssss', 'GENERAL', 0, '2026-04-18 23:50:00', 'ETUDIANT', 4),
-(23, 2, 'Ibrahima Diallo', 'GESTIONNAIRE', '[Réclamation] ajoaut  d\'un gestionnaire', 'hhhhhhhhhhhhh', 'RECLAMATION', 0, '2026-04-18 23:50:58', 'ADMIN', NULL);
+(22, 2, 'Ibrahima Diallo', 'GESTIONNAIRE', '[Groupe] tous les utilisateur', 'sssss', 'GENERAL', 0, '2026-04-18 23:50:00', 'ETUDIANT', 4);
 
 -- --------------------------------------------------------
 
---
+
 -- Structure de la table `salles`
---
 
 CREATE TABLE `salles` (
   `id` int(11) NOT NULL,
@@ -179,9 +165,7 @@ CREATE TABLE `salles` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
 -- Déchargement des données de la table `salles`
---
 
 INSERT INTO `salles` (`id`, `numero`, `capacite`, `type`, `batiment`, `etage`, `videoprojecteur`, `tableau_interactif`, `climatisation`, `created_at`) VALUES
 (8, '1', 150, 'Amphi', 'UFR-SET', 'Rez-de-chaussée', 1, 1, 1, '2026-04-05 14:22:23'),
@@ -200,9 +184,8 @@ INSERT INTO `salles` (`id`, `numero`, `capacite`, `type`, `batiment`, `etage`, `
 
 -- --------------------------------------------------------
 
---
+
 -- Structure de la table `utilisateurs`
---
 
 CREATE TABLE `utilisateurs` (
   `id` int(11) NOT NULL,
@@ -216,9 +199,8 @@ CREATE TABLE `utilisateurs` (
   `matiere` varchar(200) DEFAULT NULL COMMENT 'Matière(s) enseignée(s) — enseignants uniquement'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+
 -- Déchargement des données de la table `utilisateurs`
---
 
 INSERT INTO `utilisateurs` (`id`, `nom`, `prenom`, `login`, `mot_de_passe`, `role`, `created_at`, `classe`, `matiere`) VALUES
 (1, 'Ibra', 'Diongue', 'admin', 'admin123', 'ADMIN', '2026-03-13 06:23:27', NULL, NULL),
@@ -227,13 +209,17 @@ INSERT INTO `utilisateurs` (`id`, `nom`, `prenom`, `login`, `mot_de_passe`, `rol
 (4, 'Ndiaye', 'Fatou', 'etudiant', 'etu123', 'ETUDIANT', '2026-03-13 06:23:27', NULL, NULL),
 (5, 'diallo', 'alssainy', 'alssainy', 'alssainy', 'ENSEIGNANT', '2026-03-14 02:14:31', NULL, NULL);
 
---
--- Index pour les tables déchargées
---
+-- ----------------------------------------------------------
 
---
+
+
+
+-- INDEX POUR LES TABLES DÉCHARGÉES
+
+
+
 -- Index pour la table `batiments`
---
+
 ALTER TABLE `batiments`
   ADD PRIMARY KEY (`id`);
 
@@ -244,9 +230,9 @@ ALTER TABLE `classes`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `nom` (`nom`);
 
---
+
 -- Index pour la table `cours`
---
+
 ALTER TABLE `cours`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_classe` (`classe`),
@@ -254,100 +240,101 @@ ALTER TABLE `cours`
   ADD KEY `idx_salle` (`salle_id`),
   ADD KEY `idx_date` (`date_debut`);
 
---
+
 -- Index pour la table `emploi_du_temps`
---
+
 ALTER TABLE `emploi_du_temps`
   ADD PRIMARY KEY (`id`),
   ADD KEY `salle_id` (`salle_id`);
 
---
+
 -- Index pour la table `messages`
---
+
 ALTER TABLE `messages`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_dest_id` (`destinataire_id`),
   ADD KEY `expediteur_id` (`expediteur_id`);
 
---
+
 -- Index pour la table `salles`
---
+
 ALTER TABLE `salles`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `numero_batiment` (`numero`,`batiment`);
 
---
+
 -- Index pour la table `utilisateurs`
---
+
 ALTER TABLE `utilisateurs`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `login` (`login`);
 
---
--- AUTO_INCREMENT pour les tables déchargées
---
 
---
+-- AUTO_INCREMENT pour les tables déchargées
+
+
+
 -- AUTO_INCREMENT pour la table `batiments`
---
+
 ALTER TABLE `batiments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
---
+
 -- AUTO_INCREMENT pour la table `classes`
---
+
 ALTER TABLE `classes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
---
+
 -- AUTO_INCREMENT pour la table `cours`
---
+
 ALTER TABLE `cours`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
---
+
 -- AUTO_INCREMENT pour la table `emploi_du_temps`
---
+
 ALTER TABLE `emploi_du_temps`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
---
+
 -- AUTO_INCREMENT pour la table `messages`
---
+
 ALTER TABLE `messages`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
---
+
 -- AUTO_INCREMENT pour la table `salles`
---
+
 ALTER TABLE `salles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
---
+
 -- AUTO_INCREMENT pour la table `utilisateurs`
---
+
 ALTER TABLE `utilisateurs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
---
--- Contraintes pour les tables déchargées
---
 
---
+
+
+-- CONTRAINTES POUR LES TABLES DÉCHARGÉES
+
+
 -- Contraintes pour la table `cours`
---
+
 ALTER TABLE `cours`
   ADD CONSTRAINT `cours_ibfk_1` FOREIGN KEY (`salle_id`) REFERENCES `salles` (`id`) ON DELETE CASCADE;
 
---
+
 -- Contraintes pour la table `emploi_du_temps`
---
+
 ALTER TABLE `emploi_du_temps`
   ADD CONSTRAINT `emploi_du_temps_ibfk_1` FOREIGN KEY (`salle_id`) REFERENCES `salles` (`id`);
 
---
+
 -- Contraintes pour la table `messages`
---
+
 ALTER TABLE `messages`
   ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`expediteur_id`) REFERENCES `utilisateurs` (`id`) ON DELETE CASCADE;
 COMMIT;
